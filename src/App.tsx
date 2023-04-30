@@ -1,62 +1,135 @@
 import { useState } from "react";
 import "./App.css";
+import { Chessboard, ISquare } from "./types";
+import { initChessboard } from "./chessboard";
 
-interface Piece {
-  type: string;
-  color: string;
-}
-
-interface ISquare {
-  piece?: Piece;
-  x: number;
-  y: number;
-}
-
-type Chessboard = ISquare[][];
-
-function initFirstRow(chessboard: Chessboard, row: number, color: string) {
-  chessboard.push([
-    { piece: { type: "r", color }, x: 0, y: row },
-    { piece: { type: "k", color }, x: 1, y: row },
-    { piece: { type: "b", color }, x: 2, y: row },
-    { piece: { type: "q", color }, x: 3, y: row },
-    { piece: { type: "ki", color }, x: 4, y: row },
-    { piece: { type: "b", color }, x: 5, y: row },
-    { piece: { type: "k", color }, x: 6, y: row },
-    { piece: { type: "r", color }, x: 7, y: row },
-  ]);
-}
-
-function initSecondRow(chessboard: Chessboard, row: number, color: string) {
-  chessboard.push(
-    Array.from({ length: 8 }, (_, i) => {
-      return { piece: { type: "p", color }, x: i, y: row };
-    })
-  );
-}
-
-function initEmptyRow(chessboard: Chessboard, row: number) {
-  chessboard.push(
-    Array.from({ length: 8 }, (_, i) => {
-      return { x: i, y: row };
-    })
-  );
-}
-
-function initChessboard() {
-  const chessboard: Chessboard = [];
-  initFirstRow(chessboard, 0, "black");
-  initSecondRow(chessboard, 1, "black");
-  initEmptyRow(chessboard, 2);
-  initEmptyRow(chessboard, 3);
-  initEmptyRow(chessboard, 4);
-  initEmptyRow(chessboard, 5);
-  initSecondRow(chessboard, 6, "white");
-  initFirstRow(chessboard, 7, "white");
-  return chessboard;
-}
 const initialChessboard = initChessboard();
 const moves = ["white", "black"];
+
+function hasFreeRow(chessboard: Chessboard, src: ISquare, dst: ISquare) {
+  let start_x = src.x;
+  let end_x = dst.x;
+  if (end_x < start_x) [start_x, end_x] = [end_x, start_x];
+  for (let col = start_x + 1; col < end_x; col++) {
+    if (chessboard[src.y][col].piece) return false;
+  }
+  return true;
+}
+
+function hasFreeColumn(chessboard: Chessboard, src: ISquare, dst: ISquare) {
+  let start_y = src.y;
+  let end_y = dst.y;
+  if (end_y < start_y) [start_y, end_y] = [end_y, start_y];
+  for (let row = start_y + 1; row < end_y; row++) {
+    if (chessboard[row][src.x].piece) return false;
+  }
+  return true;
+}
+
+function hasFreeMainDiagonal(
+  chessboard: Chessboard,
+  src: ISquare,
+  dst: ISquare
+) {
+  let x_start = src.x;
+  let y_start = src.y;
+  let x_end = dst.x;
+  let y_end = dst.y;
+
+  let x_inc = x_start + 1,
+    y_inc = y_start - 1;
+  for (; x_inc < x_end && y_inc > y_end; x_inc++, y_inc--) {
+    if (chessboard[y_inc][x_inc].piece) {
+      return false;
+    }
+  }
+  if (x_inc === dst.x && y_inc === dst.y) return true;
+  (x_inc = x_start - 1), (y_inc = y_start + 1);
+  for (; x_inc > x_end && y_inc < y_end; x_inc--, y_inc++) {
+    if (chessboard[y_inc][x_inc].piece) {
+      return false;
+    }
+  }
+  return x_inc === dst.x && y_inc === dst.y;
+}
+
+function hasFreeSecondDiagonal(
+  chessboard: Chessboard,
+  src: ISquare,
+  dst: ISquare
+) {
+  let x_start = src.x;
+  let y_start = src.y;
+  let x_end = dst.x;
+  let y_end = dst.y;
+
+  let x_inc = x_start - 1,
+    y_inc = y_start - 1;
+  for (; x_inc > x_end && y_inc > y_end; x_inc--, y_inc--) {
+    if (chessboard[y_inc][x_inc].piece) {
+      return false;
+    }
+  }
+  if (x_inc === dst.x && y_inc === dst.y) return true;
+  (x_inc = x_start + 1), (y_inc = y_start + 1);
+  for (; x_inc < x_end && y_inc < y_end; x_inc++, y_inc++) {
+    if (chessboard[y_inc][x_inc].piece) {
+      return false;
+    }
+  }
+  return x_inc === dst.x && y_inc === dst.y;
+}
+
+function isValidMove(chessboard: Chessboard, src: ISquare, dst: ISquare) {
+  const takenBySameColor = dst.piece && dst.piece.color === src.piece?.color;
+  if (takenBySameColor) {
+    return false;
+  }
+
+  const dx = Math.abs(dst.x - src.x);
+  const dy = Math.abs(dst.y - src.y);
+  switch (src.piece?.type) {
+    case "p":
+      return (
+        dx === 0 &&
+        ((dst.y - src.y === -1 && src.piece.color === "white") ||
+          (dst.y - src.y === 1 && src.piece.color === "black"))
+      );
+    case "r":
+      return (
+        (dst.x - src.x > 0 && dy === 0 && hasFreeRow(chessboard, src, dst)) || // prawo
+        (dst.x - src.x < 0 && dy === 0 && hasFreeRow(chessboard, src, dst)) || // lewo
+        (dst.y - src.y > 0 &&
+          dx === 0 &&
+          hasFreeColumn(chessboard, src, dst)) || // dol
+        (dst.y - src.y < 0 && dx === 0 && hasFreeColumn(chessboard, src, dst)) // gora
+      );
+    case "q":
+      return (
+        (dst.x - src.x > 0 && dy === 0 && hasFreeRow(chessboard, src, dst)) || // prawo
+        (dst.x - src.x < 0 && dy === 0 && hasFreeRow(chessboard, src, dst)) || // lewo
+        (dst.y - src.y > 0 &&
+          dx === 0 &&
+          hasFreeColumn(chessboard, src, dst)) || // dol
+        (dst.y - src.y < 0 &&
+          dx === 0 &&
+          hasFreeColumn(chessboard, src, dst)) || // gora
+        (dx === dy &&
+          (hasFreeMainDiagonal(chessboard, src, dst) ||
+            hasFreeSecondDiagonal(chessboard, src, dst)))
+      );
+    case "b":
+      return (
+        dx === dy &&
+        (hasFreeMainDiagonal(chessboard, src, dst) ||
+          hasFreeSecondDiagonal(chessboard, src, dst))
+      );
+    case "ki":
+      return dx + dy === 1 || (dx + dy === 2 && dx === dy);
+    case "k":
+      return (dx === 1 && dy === 2) || (dx === 2 && dy === 1);
+  }
+}
 
 function Square({
   square,
@@ -84,18 +157,23 @@ function Square({
       setSelectedItem(square);
     } else if (
       selectedItem &&
-      (!square.piece || square.piece.color !== selectedItem?.piece?.color)
+      square.piece &&
+      moves[currentMove] === square?.piece?.color
     ) {
+      setSelectedItem(square);
+    } else if (selectedItem && isValidMove(chessboard, selectedItem, square)) {
       setChessboard(
         chessboard.map((row, i) => {
-          if (i !== square.y) {
+          if (i !== square.y && i !== selectedItem.y) {
             return row;
           } else {
             return row.map((s, j) => {
-              if (j !== square?.x) {
-                return s;
-              } else {
+              if (i === selectedItem.y && j === selectedItem.x)
+                return { ...selectedItem, piece: undefined };
+              else if (i === square.y && j === square.x) {
                 return { ...s, piece: selectedItem?.piece };
+              } else {
+                return s;
               }
             });
           }
