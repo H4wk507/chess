@@ -80,54 +80,81 @@ function hasFreeSecondDiagonal(
   return x_inc === dst.x && y_inc === dst.y;
 }
 
+function isValidRookMove(chessboard: Chessboard, src: ISquare, dst: ISquare) {
+  const dx = dst.x - src.x;
+  const dy = dst.y - src.y;
+  return (
+    (dx > 0 && dy === 0 && hasFreeRow(chessboard, src, dst)) || // right
+    (dx < 0 && dy === 0 && hasFreeRow(chessboard, src, dst)) || // left
+    (dy > 0 && dx === 0 && hasFreeColumn(chessboard, src, dst)) || // down
+    (dy < 0 && dx === 0 && hasFreeColumn(chessboard, src, dst)) // up
+  );
+}
+
+function isValidBishopMove(chessboard: Chessboard, src: ISquare, dst: ISquare) {
+  const dx = Math.abs(dst.x - src.x);
+  const dy = Math.abs(dst.y - src.y);
+  return (
+    dx === dy &&
+    (hasFreeMainDiagonal(chessboard, src, dst) ||
+      hasFreeSecondDiagonal(chessboard, src, dst))
+  );
+}
+
+function isValidKingMove(src: ISquare, dst: ISquare) {
+  // TODO: check if field we are moving to is under attack
+  // TODO: castle
+  const dx = Math.abs(dst.x - src.x);
+  const dy = Math.abs(dst.y - src.y);
+  return dx + dy === 1 || (dx + dy === 2 && dx === dy);
+}
+
+function isValidKnightMove(src: ISquare, dst: ISquare) {
+  const dx = Math.abs(dst.x - src.x);
+  const dy = Math.abs(dst.y - src.y);
+  return (dx === 1 && dy === 2) || (dx === 2 && dy === 1);
+}
+
+function isValidQueenMove(chessboard: Chessboard, src: ISquare, dst: ISquare) {
+  return (
+    isValidRookMove(chessboard, src, dst) ||
+    isValidBishopMove(chessboard, src, dst)
+  );
+}
+
+function isValidPawnMove(src: ISquare, dst: ISquare) {
+  // TODO: give a Piece object a hasMoved key and allow for 2 square move
+  // TODO: en passant
+  const dx = dst.x - src.x;
+  const dy = dst.y - src.y;
+  const direction = src.piece?.color === "white" ? -1 : 1;
+
+  if (dy !== direction) return false;
+  if (Math.abs(dx) === 1 && dst.piece && dst.piece.color !== src.piece?.color)
+    return true;
+  if (dx === 0) return dst.piece === undefined;
+}
+
 function isValidMove(chessboard: Chessboard, src: ISquare, dst: ISquare) {
+  // TODO: check if king is under attack
   const takenBySameColor = dst.piece && dst.piece.color === src.piece?.color;
   if (takenBySameColor) {
     return false;
   }
 
-  const dx = Math.abs(dst.x - src.x);
-  const dy = Math.abs(dst.y - src.y);
   switch (src.piece?.type) {
     case "p":
-      return (
-        dx === 0 &&
-        ((dst.y - src.y === -1 && src.piece.color === "white") ||
-          (dst.y - src.y === 1 && src.piece.color === "black"))
-      );
+      return isValidPawnMove(src, dst);
     case "r":
-      return (
-        (dst.x - src.x > 0 && dy === 0 && hasFreeRow(chessboard, src, dst)) || // prawo
-        (dst.x - src.x < 0 && dy === 0 && hasFreeRow(chessboard, src, dst)) || // lewo
-        (dst.y - src.y > 0 &&
-          dx === 0 &&
-          hasFreeColumn(chessboard, src, dst)) || // dol
-        (dst.y - src.y < 0 && dx === 0 && hasFreeColumn(chessboard, src, dst)) // gora
-      );
+      return isValidRookMove(chessboard, src, dst);
     case "q":
-      return (
-        (dst.x - src.x > 0 && dy === 0 && hasFreeRow(chessboard, src, dst)) || // prawo
-        (dst.x - src.x < 0 && dy === 0 && hasFreeRow(chessboard, src, dst)) || // lewo
-        (dst.y - src.y > 0 &&
-          dx === 0 &&
-          hasFreeColumn(chessboard, src, dst)) || // dol
-        (dst.y - src.y < 0 &&
-          dx === 0 &&
-          hasFreeColumn(chessboard, src, dst)) || // gora
-        (dx === dy &&
-          (hasFreeMainDiagonal(chessboard, src, dst) ||
-            hasFreeSecondDiagonal(chessboard, src, dst)))
-      );
+      return isValidQueenMove(chessboard, src, dst);
     case "b":
-      return (
-        dx === dy &&
-        (hasFreeMainDiagonal(chessboard, src, dst) ||
-          hasFreeSecondDiagonal(chessboard, src, dst))
-      );
+      return isValidBishopMove(chessboard, src, dst);
     case "ki":
-      return dx + dy === 1 || (dx + dy === 2 && dx === dy);
+      return isValidKingMove(src, dst);
     case "k":
-      return (dx === 1 && dy === 2) || (dx === 2 && dy === 1);
+      return isValidKnightMove(src, dst);
   }
 }
 
