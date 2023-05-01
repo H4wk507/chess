@@ -123,20 +123,67 @@ function isValidQueenMove(chessboard: Chessboard, src: ISquare, dst: ISquare) {
 }
 
 function isValidPawnMove(src: ISquare, dst: ISquare) {
-  // TODO: give a Piece object a hasMoved key and allow for 2 square move
   // TODO: en passant
   const dx = dst.x - src.x;
   const dy = dst.y - src.y;
   const direction = src.piece?.color === "white" ? -1 : 1;
 
-  if (dy !== direction) return false;
-  if (Math.abs(dx) === 1 && dst.piece && dst.piece.color !== src.piece?.color)
-    return true;
+  if (src.piece?.hasMoved) {
+    if (dy !== direction) return false;
+  } else {
+    if (dy !== direction && dy !== 2 * direction) return false;
+  }
+
+  if (isValidPawnAttack(src, dst)) return true;
   if (dx === 0) return dst.piece === undefined;
 }
 
+function isValidPawnAttack(src: ISquare, dst: ISquare) {
+  const dx = dst.x - src.x;
+  const dy = dst.y - src.y;
+
+  return (
+    Math.abs(dx) === 1 &&
+    Math.abs(dy) === 1 &&
+    dst.piece &&
+    dst.piece.color !== src.piece?.color
+  );
+}
+
+function getKingPosition(chessboard: Chessboard, color?: string) {
+  const kingSquare = chessboard
+    .flat()
+    .find(
+      (square) => square.piece?.type === "ki" && square.piece?.color === color
+    );
+  if (kingSquare) return kingSquare;
+
+  console.log("unreachable");
+  return { piece: undefined, x: -1, y: -1 } as ISquare;
+}
+
+function isKingAttacked(chessboard: Chessboard, kingSquare: ISquare) {
+  return chessboard.flat().some((square) => {
+    if (square.piece?.color === kingSquare.piece?.color) {
+      return false;
+    }
+    switch (square.piece?.type) {
+      case "p":
+        return isValidPawnAttack(square, kingSquare);
+      case "r":
+        return isValidRookMove(chessboard, square, kingSquare);
+      case "q":
+        return isValidQueenMove(chessboard, square, kingSquare);
+      case "b":
+        return isValidBishopMove(chessboard, square, kingSquare);
+      case "k":
+        return isValidKnightMove(square, kingSquare);
+    }
+  });
+}
+
 function isValidMove(chessboard: Chessboard, src: ISquare, dst: ISquare) {
-  // TODO: check if king is under attack
+  // TODO: if moving a piece makes us king vulnerable, we should return false
   const takenBySameColor = dst.piece && dst.piece.color === src.piece?.color;
   if (takenBySameColor) {
     return false;
@@ -158,6 +205,32 @@ function isValidMove(chessboard: Chessboard, src: ISquare, dst: ISquare) {
   }
 }
 
+function getNewBoard(chessboard: Chessboard, src: ISquare, dst: ISquare) {
+  // get new board where src has moved to dst
+  return chessboard.map((row, i) => {
+    if (i !== dst.y && i !== src.y) {
+      return row;
+    } else {
+      return row.map((s, j) => {
+        if (i === src.y && j === src.x) return { ...src, piece: undefined };
+        else if (i === dst.y && j === dst.x) {
+          return {
+            ...s,
+            piece: {
+              // TODO: it should not assign an empty string
+              type: src?.piece?.type ?? "",
+              color: src?.piece?.color ?? "",
+              hasMoved: true,
+            },
+          };
+        } else {
+          return s;
+        }
+      });
+    }
+  });
+}
+
 function Square({
   square,
   selectedItem,
@@ -169,13 +242,15 @@ function Square({
 }: {
   square: ISquare;
   selectedItem: null | ISquare;
-  setSelectedItem: (p: null | ISquare) => void;
-  chessboard: ISquare[][];
-  setChessboard: (chessboard: ISquare[][]) => void;
-  currentMove: any;
-  setCurrentMove: any;
+  setSelectedItem: (item: null | ISquare) => void;
+  chessboard: Chessboard;
+  setChessboard: (chessboard: Chessboard) => void;
+  currentMove: number;
+  setCurrentMove: (move: number) => void;
 }) {
   const handleClick = () => {
+    // TODO: refactor this mess
+    let kingSquare = getKingPosition(chessboard, moves[currentMove]);
     if (
       selectedItem === null &&
       square.piece &&
@@ -188,24 +263,16 @@ function Square({
       moves[currentMove] === square?.piece?.color
     ) {
       setSelectedItem(square);
+    } else if (selectedItem && isKingAttacked(chessboard, kingSquare)) {
+      const newChessboard = getNewBoard(chessboard, selectedItem, square);
+      kingSquare = getKingPosition(newChessboard, moves[currentMove]);
+      if (!isKingAttacked(newChessboard, kingSquare)) {
+        setChessboard(getNewBoard(newChessboard, selectedItem, square));
+        setCurrentMove((currentMove + 1) % 2);
+        setSelectedItem(null);
+      }
     } else if (selectedItem && isValidMove(chessboard, selectedItem, square)) {
-      setChessboard(
-        chessboard.map((row, i) => {
-          if (i !== square.y && i !== selectedItem.y) {
-            return row;
-          } else {
-            return row.map((s, j) => {
-              if (i === selectedItem.y && j === selectedItem.x)
-                return { ...selectedItem, piece: undefined };
-              else if (i === square.y && j === square.x) {
-                return { ...s, piece: selectedItem?.piece };
-              } else {
-                return s;
-              }
-            });
-          }
-        })
-      );
+      setChessboard(getNewBoard(chessboard, selectedItem, square));
       setCurrentMove((currentMove + 1) % 2);
       setSelectedItem(null);
     }

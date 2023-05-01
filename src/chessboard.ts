@@ -15,21 +15,21 @@ export function initChessboard() {
 
 function initFirstRow(chessboard: Chessboard, row: number, color: string) {
   chessboard.push([
-    { piece: { type: "r", color }, x: 0, y: row },
-    { piece: { type: "k", color }, x: 1, y: row },
-    { piece: { type: "b", color }, x: 2, y: row },
-    { piece: { type: "q", color }, x: 3, y: row },
-    { piece: { type: "ki", color }, x: 4, y: row },
-    { piece: { type: "b", color }, x: 5, y: row },
-    { piece: { type: "k", color }, x: 6, y: row },
-    { piece: { type: "r", color }, x: 7, y: row },
+    { piece: { type: "r", color, hasMoved: false }, x: 0, y: row },
+    { piece: { type: "k", color, hasMoved: false }, x: 1, y: row },
+    { piece: { type: "b", color, hasMoved: false }, x: 2, y: row },
+    { piece: { type: "q", color, hasMoved: false }, x: 3, y: row },
+    { piece: { type: "ki", color, hasMoved: false }, x: 4, y: row },
+    { piece: { type: "b", color, hasMoved: false }, x: 5, y: row },
+    { piece: { type: "k", color, hasMoved: false }, x: 6, y: row },
+    { piece: { type: "r", color, hasMoved: false }, x: 7, y: row },
   ]);
 }
 
 function initSecondRow(chessboard: Chessboard, row: number, color: string) {
   chessboard.push(
     Array.from({ length: 8 }, (_, i) => {
-      return { piece: { type: "p", color }, x: i, y: row };
+      return { piece: { type: "p", color, hasMoved: false }, x: i, y: row };
     })
   );
 }
