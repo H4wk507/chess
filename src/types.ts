@@ -1,6 +1,20 @@
+export enum Color {
+  WHITE,
+  BLACK,
+}
+
+export enum PieceType {
+  PAWN,
+  KNIGHT,
+  BISHOP,
+  ROOK,
+  QUEEN,
+  KING,
+}
+
 export interface Piece {
-  type: string;
-  color: string;
+  type: PieceType;
+  color: Color;
   hasMoved: boolean;
 }
 
