@@ -12,20 +12,20 @@ export enum PieceType {
   KING,
 }
 
-export interface Position {
+export type Position = {
   y: number;
   x: number;
-}
+};
 
-export interface Piece {
+export type Piece = {
   type: PieceType;
   color: Color;
   hasMoved: boolean;
-}
+};
 
-export interface ISquare {
+export type ISquare = {
   piece?: Piece;
   position: Position;
-}
+};
 
 export type Chessboard = ISquare[][];

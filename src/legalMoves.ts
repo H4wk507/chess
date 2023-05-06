@@ -1,5 +1,6 @@
-import { isKingAttacked } from "./App";
-import { Chessboard, Color, ISquare, Position } from "./types";
+import { getNewBoard } from "./chessboard";
+import { isKingAttacked } from "./kingLogic";
+import { Chessboard, Color, ISquare, PieceType, Position } from "./types";
 
 function isOutOfBounds(y: number, x: number): boolean {
   return y < 0 || y > 7 || x < 0 || x > 7;
@@ -178,33 +179,23 @@ export function getLegalKingMoves(
   return legalMoves;
 }
 
-export function getNewBoard(
+export function getLegalMoves(
   chessboard: Chessboard,
-  src: ISquare,
-  dst: Position
-): Chessboard {
-  /* get new board where src has moved to dst */
-  return chessboard.map((row, i) => {
-    if (i !== dst.y && i !== src.position.y) {
-      return row;
-    } else {
-      return row.map((square, j) => {
-        if (i === src.position.y && j === src.position.x)
-          return { ...src, piece: undefined };
-        else if (i === dst.y && j === dst.x) {
-          return {
-            ...square,
-            piece: {
-              // @ts-ignore
-              type: src.piece.type, // @ts-ignore
-              color: src.piece.color,
-              hasMoved: true,
-            },
-          };
-        } else {
-          return square;
-        }
-      });
-    }
-  });
+  square: ISquare
+): Set<Position> {
+  switch (square.piece?.type) {
+    case PieceType.PAWN:
+      return getLegalPawnMoves(chessboard, square);
+    case PieceType.KNIGHT:
+      return getLegalKnightMoves(chessboard, square);
+    case PieceType.BISHOP:
+      return getLegalBishopMoves(chessboard, square);
+    case PieceType.ROOK:
+      return getLegalRookMoves(chessboard, square);
+    case PieceType.QUEEN:
+      return getLegalQueenMoves(chessboard, square);
+    case PieceType.KING:
+      return getLegalKingMoves(chessboard, square);
+  }
+  return new Set();
 }

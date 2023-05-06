@@ -11,11 +11,11 @@
 }
 
 .black {
-  background-color: green;
+  background-color: #2596be;
 }
 
 .white {
-  background-color: gray;
+  background-color: #f1f1f1;
 }
 
 .available {
@@ -28,5 +28,4 @@
   align-items: center;
   width: 50px;
   height: 50px;
-  color: white;
 }

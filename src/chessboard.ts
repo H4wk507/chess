@@ -1,4 +1,6 @@
-import { Chessboard, Color, PieceType } from "./types";
+/* All functions related to chessboard state */
+
+import { Chessboard, Color, ISquare, PieceType, Position } from "./types";
 
 export function initChessboard(): Chessboard {
   const chessboard: Chessboard = [];
@@ -79,4 +81,35 @@ export function initEmptyRow(chessboard: Chessboard, row: number): void {
       return { position: { x: i, y: row } };
     })
   );
+}
+
+export function getNewBoard(
+  chessboard: Chessboard,
+  src: ISquare,
+  dst: Position
+): Chessboard {
+  /* Get a new chessboard where src has moved to dst position. */
+  return chessboard.map((row, i) => {
+    if (i !== dst.y && i !== src.position.y) {
+      return row;
+    } else {
+      return row.map((square, j) => {
+        if (i === src.position.y && j === src.position.x)
+          return { ...src, piece: undefined };
+        else if (i === dst.y && j === dst.x) {
+          return {
+            ...square,
+            piece: {
+              // @ts-ignore
+              type: src.piece.type, // @ts-ignore
+              color: src.piece.color,
+              hasMoved: true,
+            },
+          };
+        } else {
+          return square;
+        }
+      });
+    }
+  });
 }
