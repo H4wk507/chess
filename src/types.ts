@@ -12,6 +12,11 @@ export enum PieceType {
   KING,
 }
 
+export interface Position {
+  y: number;
+  x: number;
+}
+
 export interface Piece {
   type: PieceType;
   color: Color;
@@ -20,8 +25,7 @@ export interface Piece {
 
 export interface ISquare {
   piece?: Piece;
-  x: number;
-  y: number;
+  position: Position;
 }
 
 export type Chessboard = ISquare[][];

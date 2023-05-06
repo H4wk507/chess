@@ -13,16 +13,48 @@ export function initChessboard(): Chessboard {
   return chessboard;
 }
 
+export function initEmptyChessboard(): Chessboard {
+  const chessboard: Chessboard = [];
+  for (let i = 0; i < 7; i++) {
+    initEmptyRow(chessboard, i);
+  }
+  return chessboard;
+}
+
 function initFirstRow(chessboard: Chessboard, row: number, color: Color): void {
   chessboard.push([
-    { piece: { type: PieceType.ROOK, color, hasMoved: false }, x: 0, y: row },
-    { piece: { type: PieceType.KNIGHT, color, hasMoved: false }, x: 1, y: row },
-    { piece: { type: PieceType.BISHOP, color, hasMoved: false }, x: 2, y: row },
-    { piece: { type: PieceType.QUEEN, color, hasMoved: false }, x: 3, y: row },
-    { piece: { type: PieceType.KING, color, hasMoved: false }, x: 4, y: row },
-    { piece: { type: PieceType.BISHOP, color, hasMoved: false }, x: 5, y: row },
-    { piece: { type: PieceType.KNIGHT, color, hasMoved: false }, x: 6, y: row },
-    { piece: { type: PieceType.ROOK, color, hasMoved: false }, x: 7, y: row },
+    {
+      piece: { type: PieceType.ROOK, color, hasMoved: false },
+      position: { x: 0, y: row },
+    },
+    {
+      piece: { type: PieceType.KNIGHT, color, hasMoved: false },
+      position: { x: 1, y: row },
+    },
+    {
+      piece: { type: PieceType.BISHOP, color, hasMoved: false },
+      position: { x: 2, y: row },
+    },
+    {
+      piece: { type: PieceType.QUEEN, color, hasMoved: false },
+      position: { x: 3, y: row },
+    },
+    {
+      piece: { type: PieceType.KING, color, hasMoved: false },
+      position: { x: 4, y: row },
+    },
+    {
+      piece: { type: PieceType.BISHOP, color, hasMoved: false },
+      position: { x: 5, y: row },
+    },
+    {
+      piece: { type: PieceType.KNIGHT, color, hasMoved: false },
+      position: { x: 6, y: row },
+    },
+    {
+      piece: { type: PieceType.ROOK, color, hasMoved: false },
+      position: { x: 7, y: row },
+    },
   ]);
 }
 
@@ -35,17 +67,16 @@ function initSecondRow(
     Array.from({ length: 8 }, (_, i) => {
       return {
         piece: { type: PieceType.PAWN, color, hasMoved: false },
-        x: i,
-        y: row,
+        position: { x: i, y: row },
       };
     })
   );
 }
 
-function initEmptyRow(chessboard: Chessboard, row: number): void {
+export function initEmptyRow(chessboard: Chessboard, row: number): void {
   chessboard.push(
     Array.from({ length: 8 }, (_, i) => {
-      return { x: i, y: row };
+      return { position: { x: i, y: row } };
     })
   );
 }

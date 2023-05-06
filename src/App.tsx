@@ -1,133 +1,69 @@
 import { useState } from "react";
 import "./App.css";
-import { Chessboard, Color, ISquare, PieceType } from "./types";
+import { Chessboard, Color, ISquare, PieceType, Position } from "./types";
 import { initChessboard } from "./chessboard";
+import {
+  getLegalBishopMoves,
+  getLegalKingMoves,
+  getLegalKnightMoves,
+  getLegalPawnMoves,
+  getLegalQueenMoves,
+  getLegalRookMoves,
+  getNewBoard,
+} from "./legalMoves";
+import { containsPosition, pieceToSvg } from "./utils";
 
 const initialChessboard = initChessboard();
 const moves = [Color.WHITE, Color.BLACK];
 
-function hasFreeRow(
-  chessboard: Chessboard,
-  src: ISquare,
-  dst: ISquare
-): boolean {
-  let start_x = src.x;
-  let end_x = dst.x;
-  if (end_x < start_x) [start_x, end_x] = [end_x, start_x];
-  for (let col = start_x + 1; col < end_x; col++) {
-    if (chessboard[src.y][col].piece) return false;
-  }
-  return true;
-}
-
-function hasFreeColumn(
-  chessboard: Chessboard,
-  src: ISquare,
-  dst: ISquare
-): boolean {
-  let start_y = src.y;
-  let end_y = dst.y;
-  if (end_y < start_y) [start_y, end_y] = [end_y, start_y];
-  for (let row = start_y + 1; row < end_y; row++) {
-    if (chessboard[row][src.x].piece) return false;
-  }
-  return true;
-}
-
-function hasFreeMainDiagonal(
-  chessboard: Chessboard,
-  src: ISquare,
-  dst: ISquare
-): boolean {
-  let x_start = src.x;
-  let y_start = src.y;
-  let x_end = dst.x;
-  let y_end = dst.y;
-
-  let x_inc = x_start + 1,
-    y_inc = y_start - 1;
-  for (; x_inc < x_end && y_inc > y_end; x_inc++, y_inc--) {
-    if (chessboard[y_inc][x_inc].piece) {
-      return false;
-    }
-  }
-  if (x_inc === dst.x && y_inc === dst.y) return true;
-  (x_inc = x_start - 1), (y_inc = y_start + 1);
-  for (; x_inc > x_end && y_inc < y_end; x_inc--, y_inc++) {
-    if (chessboard[y_inc][x_inc].piece) {
-      return false;
-    }
-  }
-  return x_inc === dst.x && y_inc === dst.y;
-}
-
-function hasFreeSecondDiagonal(
-  chessboard: Chessboard,
-  src: ISquare,
-  dst: ISquare
-): boolean {
-  let x_start = src.x;
-  let y_start = src.y;
-  let x_end = dst.x;
-  let y_end = dst.y;
-
-  let x_inc = x_start - 1,
-    y_inc = y_start - 1;
-  for (; x_inc > x_end && y_inc > y_end; x_inc--, y_inc--) {
-    if (chessboard[y_inc][x_inc].piece) {
-      return false;
-    }
-  }
-  if (x_inc === dst.x && y_inc === dst.y) return true;
-  (x_inc = x_start + 1), (y_inc = y_start + 1);
-  for (; x_inc < x_end && y_inc < y_end; x_inc++, y_inc++) {
-    if (chessboard[y_inc][x_inc].piece) {
-      return false;
-    }
-  }
-  return x_inc === dst.x && y_inc === dst.y;
-}
-
 function isValidRookMove(
   chessboard: Chessboard,
   src: ISquare,
-  dst: ISquare
+  dst: Position
 ): boolean {
-  const dx = dst.x - src.x;
-  const dy = dst.y - src.y;
-  return (
-    (dx > 0 && dy === 0 && hasFreeRow(chessboard, src, dst)) || // right
-    (dx < 0 && dy === 0 && hasFreeRow(chessboard, src, dst)) || // left
-    (dy > 0 && dx === 0 && hasFreeColumn(chessboard, src, dst)) || // down
-    (dy < 0 && dx === 0 && hasFreeColumn(chessboard, src, dst)) // up
-  );
+  const legalMoves = getLegalRookMoves(chessboard, src);
+  for (const move of legalMoves) {
+    if (move.x === dst.x && move.y === dst.y) return true;
+  }
+  return false;
 }
 
 function isValidBishopMove(
   chessboard: Chessboard,
   src: ISquare,
-  dst: ISquare
+  dst: Position
 ): boolean {
-  const dx = Math.abs(dst.x - src.x);
-  const dy = Math.abs(dst.y - src.y);
-  return (
-    dx === dy &&
-    (hasFreeMainDiagonal(chessboard, src, dst) ||
-      hasFreeSecondDiagonal(chessboard, src, dst))
-  );
+  const legalMoves = getLegalBishopMoves(chessboard, src);
+  for (const move of legalMoves) {
+    if (move.x === dst.x && move.y === dst.y) return true;
+  }
+  return false;
 }
 
-function isValidKingMove(src: ISquare, dst: ISquare): boolean {
+function isValidKingMove(
+  chessboard: Chessboard,
+  src: ISquare,
+  dst: Position
+): boolean {
+  // TODO: mate
   // TODO: castle
-  const dx = Math.abs(dst.x - src.x);
-  const dy = Math.abs(dst.y - src.y);
-  return dx + dy === 1 || (dx + dy === 2 && dx === dy);
+  const legalMoves = getLegalKingMoves(chessboard, src);
+  for (const move of legalMoves) {
+    if (move.x === dst.x && move.y === dst.y) return true;
+  }
+  return false;
 }
 
-function isValidKnightMove(src: ISquare, dst: ISquare): boolean {
-  const dx = Math.abs(dst.x - src.x);
-  const dy = Math.abs(dst.y - src.y);
-  return (dx === 1 && dy === 2) || (dx === 2 && dy === 1);
+function isValidKnightMove(
+  chessboard: Chessboard,
+  src: ISquare,
+  dst: Position
+): boolean {
+  const legalMoves = getLegalKnightMoves(chessboard, src);
+  for (const move of legalMoves) {
+    if (move.x === dst.x && move.y === dst.y) return true;
+  }
+  return false;
 }
 
 function isValidQueenMove(
@@ -135,38 +71,24 @@ function isValidQueenMove(
   src: ISquare,
   dst: ISquare
 ): boolean {
-  return (
-    isValidRookMove(chessboard, src, dst) ||
-    isValidBishopMove(chessboard, src, dst)
-  );
-}
-
-function isValidPawnMove(src: ISquare, dst: ISquare): boolean {
-  // TODO: en passant
-  const dx = dst.x - src.x;
-  const dy = dst.y - src.y;
-  const direction = src.piece?.color === Color.WHITE ? -1 : 1;
-
-  if (src.piece?.hasMoved) {
-    if (dy !== direction) return false;
-  } else {
-    if (dy !== direction && dy !== 2 * direction) return false;
+  const legalMoves = getLegalQueenMoves(chessboard, src);
+  for (const move of legalMoves) {
+    if (move.x === dst.position.x && move.y === dst.position.y) return true;
   }
-
-  if (isValidPawnAttack(src, dst)) return true;
-  if (dx === 0) return dst.piece === undefined;
-  return false; // unreachable?
+  return false;
 }
 
-function isValidPawnAttack(src: ISquare, dst: ISquare): boolean {
-  const dx = dst.x - src.x;
-  const dy = dst.y - src.y;
-  return (
-    Math.abs(dx) === 1 &&
-    Math.abs(dy) === 1 &&
-    dst.piece !== undefined &&
-    dst.piece.color !== src.piece?.color
-  );
+function isValidPawnMove(
+  chessboard: Chessboard,
+  src: ISquare,
+  dst: ISquare
+): boolean {
+  // TODO: en passant
+  const legalMoves = getLegalPawnMoves(chessboard, src);
+  for (const move of legalMoves) {
+    if (move.x === dst.position.x && move.y === dst.position.y) return true;
+  }
+  return false;
 }
 
 function getKingPosition(chessboard: Chessboard, color?: Color): ISquare {
@@ -178,28 +100,7 @@ function getKingPosition(chessboard: Chessboard, color?: Color): ISquare {
     );
   if (kingSquare) return kingSquare;
 
-  console.log("unreachable");
-  return { piece: undefined, x: -1, y: -1 } as ISquare;
-}
-
-function isKingAttacked(chessboard: Chessboard, kingSquare: ISquare): boolean {
-  return chessboard.flat().some((square) => {
-    if (square.piece?.color === kingSquare.piece?.color) {
-      return false;
-    }
-    switch (square.piece?.type) {
-      case PieceType.PAWN:
-        return isValidPawnAttack(square, kingSquare);
-      case PieceType.ROOK:
-        return isValidRookMove(chessboard, square, kingSquare);
-      case PieceType.QUEEN:
-        return isValidQueenMove(chessboard, square, kingSquare);
-      case PieceType.BISHOP:
-        return isValidBishopMove(chessboard, square, kingSquare);
-      case PieceType.KNIGHT:
-        return isValidKnightMove(square, kingSquare);
-    }
-  });
+  return { piece: undefined, position: { x: -1, y: -1 } };
 }
 
 function isValidMove(
@@ -214,59 +115,114 @@ function isValidMove(
 
   switch (src.piece?.type) {
     case PieceType.PAWN:
-      if (!isValidPawnMove(src, dst)) return false;
+      if (!isValidPawnMove(chessboard, src, dst)) return false;
+      break;
+    case PieceType.KNIGHT:
+      if (!isValidKnightMove(chessboard, src, dst.position)) return false;
+      break;
+    case PieceType.BISHOP:
+      if (!isValidBishopMove(chessboard, src, dst.position)) return false;
       break;
     case PieceType.ROOK:
-      if (!isValidRookMove(chessboard, src, dst)) return false;
+      if (!isValidRookMove(chessboard, src, dst.position)) return false;
       break;
     case PieceType.QUEEN:
       if (!isValidQueenMove(chessboard, src, dst)) return false;
       break;
-    case PieceType.BISHOP:
-      if (!isValidBishopMove(chessboard, src, dst)) return false;
-      break;
     case PieceType.KING:
-      if (!isValidKingMove(src, dst)) return false;
-      break;
-    case PieceType.KNIGHT:
-      if (!isValidKnightMove(src, dst)) return false;
+      if (!isValidKingMove(chessboard, src, dst.position)) return false;
       break;
   }
-  const newChessboard = getNewBoard(chessboard, src, dst);
+  const newChessboard = getNewBoard(chessboard, src, dst.position);
   const kingSquare = getKingPosition(newChessboard, src.piece?.color);
   return !isKingAttacked(newChessboard, kingSquare);
 }
 
-function getNewBoard(
+export function isKingAttacked(
   chessboard: Chessboard,
-  src: ISquare,
-  dst: ISquare
-): Chessboard {
-  /* get new board where src has moved to dst */
-  return chessboard.map((row, i) => {
-    if (i !== dst.y && i !== src.y) {
-      return row;
-    } else {
-      return row.map((square, j) => {
-        if (i === src.y && j === src.x) return { ...src, piece: undefined };
-        else if (i === dst.y && j === dst.x) {
-          return {
-            ...square,
-            piece: {
-              // @ts-ignore
-              type: src.piece.type, // @ts-ignore
-              color: src.piece.color,
-              hasMoved: true,
-            },
-          };
-        } else {
-          return square;
-        }
-      });
+  kingSquare: ISquare
+): boolean {
+  return chessboard.flat().some((square) => {
+    if (square.piece?.color === kingSquare.piece?.color) {
+      return false;
+    }
+    switch (square.piece?.type) {
+      case PieceType.PAWN:
+        return isValidPawnMove(chessboard, square, kingSquare);
+      case PieceType.KNIGHT:
+        return isValidKnightMove(chessboard, square, kingSquare.position);
+      case PieceType.BISHOP:
+        return isValidBishopMove(chessboard, square, kingSquare.position);
+      case PieceType.ROOK:
+        return isValidRookMove(chessboard, square, kingSquare.position);
+      case PieceType.QUEEN:
+        return isValidQueenMove(chessboard, square, kingSquare);
+      // adding king gives infinite recursion reference, find a way around that
     }
   });
 }
 
+function isMated(chessboard: Chessboard, color: Color) {
+  // check if color is in mate position
+  const kingSquare = getKingPosition(chessboard, color);
+  if (!isKingAttacked(chessboard, kingSquare)) {
+    return false;
+  }
+  for (const row of chessboard) {
+    for (const square of row) {
+      if (square.piece?.color !== color) continue;
+      let moves = new Set<Position>();
+      switch (square.piece.type) {
+        case PieceType.PAWN:
+          moves = getLegalPawnMoves(chessboard, square);
+          break;
+        case PieceType.KNIGHT:
+          moves = getLegalKnightMoves(chessboard, square);
+          break;
+        case PieceType.BISHOP:
+          moves = getLegalBishopMoves(chessboard, square);
+          break;
+        case PieceType.ROOK:
+          moves = getLegalRookMoves(chessboard, square);
+          break;
+        case PieceType.QUEEN:
+          moves = getLegalQueenMoves(chessboard, square);
+          break;
+        case PieceType.KING:
+          moves = getLegalKingMoves(chessboard, square);
+          break;
+      }
+      for (const move of moves) {
+        const newChessboard = getNewBoard(chessboard, square, move);
+        const kingSquare = getKingPosition(chessboard, color);
+        if (!isKingAttacked(newChessboard, kingSquare)) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+function getLegalMoves(chessboard: Chessboard, square: ISquare): Set<Position> {
+  switch (square.piece?.type) {
+    case PieceType.PAWN:
+      return getLegalPawnMoves(chessboard, square);
+    case PieceType.KNIGHT:
+      return getLegalKnightMoves(chessboard, square);
+    case PieceType.BISHOP:
+      return getLegalBishopMoves(chessboard, square);
+    case PieceType.ROOK:
+      return getLegalRookMoves(chessboard, square);
+    case PieceType.QUEEN:
+      return getLegalQueenMoves(chessboard, square);
+    case PieceType.KING:
+      return getLegalKingMoves(chessboard, square);
+  }
+  return new Set();
+}
+
+// TODO: pat
 function Square({
   square,
   selectedItem,
@@ -275,6 +231,9 @@ function Square({
   setChessboard,
   currentMove,
   setCurrentMove,
+  legalMoves,
+  setLegalMoves,
+  setWinner,
 }: {
   square: ISquare;
   selectedItem: null | ISquare;
@@ -283,75 +242,80 @@ function Square({
   setChessboard: (chessboard: Chessboard) => void;
   currentMove: number;
   setCurrentMove: (move: number) => void;
+  legalMoves: Set<Position>;
+  setLegalMoves: (moves: Set<Position>) => void;
+  setWinner: (winner: Color) => void;
 }) {
   const handleClick = () => {
     // TODO: refactor this mess
     let kingSquare = getKingPosition(chessboard, moves[currentMove]);
     if (square.piece && moves[currentMove] === square?.piece?.color) {
       setSelectedItem(square);
+      setLegalMoves(getLegalMoves(chessboard, square));
     } else if (selectedItem) {
       if (isKingAttacked(chessboard, kingSquare)) {
-        const newChessboard = getNewBoard(chessboard, selectedItem, square);
+        if (!isValidMove(chessboard, selectedItem, square)) return;
+        const newChessboard = getNewBoard(
+          chessboard,
+          selectedItem,
+          square.position
+        );
         kingSquare = getKingPosition(newChessboard, moves[currentMove]);
         if (!isKingAttacked(newChessboard, kingSquare)) {
-          setChessboard(getNewBoard(newChessboard, selectedItem, square));
+          setChessboard(
+            getNewBoard(newChessboard, selectedItem, square.position)
+          );
           setCurrentMove((currentMove + 1) % 2);
           setSelectedItem(null);
+          setLegalMoves(new Set());
         }
       } else if (isValidMove(chessboard, selectedItem, square)) {
-        setChessboard(getNewBoard(chessboard, selectedItem, square));
-        setCurrentMove((currentMove + 1) % 2);
+        const newChessboard = getNewBoard(
+          chessboard,
+          selectedItem,
+          square.position
+        );
+        const nextMove = (currentMove + 1) % 2;
+        if (isMated(newChessboard, moves[nextMove])) {
+          setWinner(moves[currentMove]);
+        }
+        setChessboard(newChessboard);
+        setCurrentMove(nextMove);
         setSelectedItem(null);
+        setLegalMoves(new Set());
       }
     }
   };
 
-  const color = (square.x + square.y) % 2 === 0 ? "white" : "black";
+  let color =
+    (square.position.x + square.position.y) % 2 === 0 ? "white" : "black";
+  if (containsPosition(square.position, legalMoves)) {
+    color = "available";
+  }
+  const imagePath = pieceToSvg(square?.piece);
   return (
-    <div
-      className={`square ${color}`}
-      style={{
-        color: square?.piece?.color === Color.WHITE ? "white" : "black",
-      }}
-      onClick={handleClick}
-    >
-      {typeToString(square?.piece?.type)}
+    <div className={`square ${color}`} onClick={handleClick}>
+      {imagePath && <img src={imagePath} />}
     </div>
   );
-}
-
-function typeToString(type?: PieceType): string {
-  switch (type) {
-    case PieceType.PAWN:
-      return "p";
-    case PieceType.KNIGHT:
-      return "k";
-    case PieceType.BISHOP:
-      return "b";
-    case PieceType.ROOK:
-      return "r";
-    case PieceType.QUEEN:
-      return "q";
-    case PieceType.KING:
-      return "ki";
-    default:
-      return "";
-  }
 }
 
 function App() {
   const [selectedItem, setSelectedItem] = useState<null | ISquare>(null);
   const [chessboard, setChessboard] = useState(initialChessboard);
   const [currentMove, setCurrentMove] = useState(0);
+  const [legalMoves, setLegalMoves] = useState<Set<Position>>(new Set());
+  const [winner, setWinner] = useState<Color | null>(null);
 
   return (
     <div className="App">
       <div className="chessboard">
-        {chessboard.map((row) => {
+        {chessboard.map((row, i) => {
           return (
-            <div className="row">
-              {row.map((square) => (
+            <div key={i} className="row">
+              {row.map((square, j) => (
                 <Square
+                  key={j}
                   square={square}
                   selectedItem={selectedItem}
                   setSelectedItem={setSelectedItem}
@@ -359,14 +323,19 @@ function App() {
                   setChessboard={setChessboard}
                   currentMove={currentMove}
                   setCurrentMove={setCurrentMove}
+                  legalMoves={legalMoves}
+                  setLegalMoves={setLegalMoves}
+                  setWinner={setWinner}
                 />
               ))}
             </div>
           );
         })}
       </div>
-      <p>Selected: {typeToString(selectedItem?.piece?.type)}</p>
-      <p>Turn: {moves[currentMove] ? "black" : "white"}</p>
+      <p>Turn: {moves[currentMove] === Color.WHITE ? "white" : "black"}</p>
+      {winner !== null && (
+        <p>{winner === Color.WHITE ? "white won" : "black won"}</p>
+      )}
     </div>
   );
 }
