@@ -1,16 +1,37 @@
 import { useState } from "react";
 import "./App.css";
-import { Chessboard, Color, ISquare, PieceType, Position } from "./types";
-import { getNewBoard, initChessboard } from "./chessboard";
+import {
+  Chessboard,
+  Color,
+  ISquare,
+  Position,
+  GameState,
+  PieceType,
+} from "./types";
+import { getNewBoard, initChessboard, initEmptyChessboard } from "./chessboard";
 import { containsPosition, pieceToSvg } from "./utils";
-import { getKingPosition, isKingAttacked, isMated } from "./kingLogic";
+import { getKingPosition, isDraw, isKingAttacked, isMated } from "./kingLogic";
 import { getLegalMoves } from "./legalMoves";
 import { isValidMove } from "./validMoves";
 
 const initialChessboard = initChessboard();
+/*
+initialChessboard[4][5] = {
+  piece: { type: PieceType.QUEEN, color: Color.WHITE, hasMoved: true },
+  position: { y: 4, x: 5 },
+};
+initialChessboard[6][5] = {
+  piece: { type: PieceType.KING, color: Color.WHITE, hasMoved: true },
+  position: { y: 6, x: 5 },
+};
+initialChessboard[0][0] = {
+  piece: { type: PieceType.KING, color: Color.BLACK, hasMoved: true },
+  position: { y: 0, x: 0 },
+};
+*/
+
 const moves = [Color.WHITE, Color.BLACK];
 
-// TODO: pat
 // TODO: clicking same piece unclicks its
 function Square({
   square,
@@ -22,7 +43,7 @@ function Square({
   setCurrentMove,
   legalMoves,
   setLegalMoves,
-  setWinner,
+  setGameState,
 }: {
   square: ISquare;
   selectedItem: null | ISquare;
@@ -33,7 +54,7 @@ function Square({
   setCurrentMove: (move: number) => void;
   legalMoves: Set<Position>;
   setLegalMoves: (moves: Set<Position>) => void;
-  setWinner: (winner: Color) => void;
+  setGameState: (state: GameState) => void;
 }) {
   const handleClick = () => {
     // TODO: refactor this mess
@@ -66,7 +87,13 @@ function Square({
         );
         const nextMove = (currentMove + 1) % 2;
         if (isMated(newChessboard, moves[nextMove])) {
-          setWinner(moves[currentMove]);
+          setGameState(
+            moves[currentMove] === Color.WHITE
+              ? GameState.WHITE
+              : GameState.BLACK
+          );
+        } else if (isDraw(newChessboard, moves[nextMove])) {
+          setGameState(GameState.DRAW);
         }
         setChessboard(newChessboard);
         setCurrentMove(nextMove);
@@ -94,7 +121,7 @@ function App() {
   const [chessboard, setChessboard] = useState(initialChessboard);
   const [currentMove, setCurrentMove] = useState(0);
   const [legalMoves, setLegalMoves] = useState<Set<Position>>(new Set());
-  const [winner, setWinner] = useState<Color | null>(null);
+  const [gameState, setGameState] = useState<GameState>(GameState.PLAYING);
 
   return (
     <div className="App">
@@ -114,7 +141,7 @@ function App() {
                   setCurrentMove={setCurrentMove}
                   legalMoves={legalMoves}
                   setLegalMoves={setLegalMoves}
-                  setWinner={setWinner}
+                  setGameState={setGameState}
                 />
               ))}
             </div>
@@ -122,8 +149,14 @@ function App() {
         })}
       </div>
       <p>Turn: {moves[currentMove] === Color.WHITE ? "white" : "black"}</p>
-      {winner !== null && (
-        <p>{winner === Color.WHITE ? "white won" : "black won"}</p>
+      {gameState !== GameState.PLAYING && (
+        <p>
+          {gameState === GameState.WHITE
+            ? "white won"
+            : gameState === GameState.BLACK
+            ? "black won"
+            : "draw"}
+        </p>
       )}
     </div>
   );

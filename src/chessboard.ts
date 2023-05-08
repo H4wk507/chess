@@ -17,7 +17,7 @@ export function initChessboard(): Chessboard {
 
 export function initEmptyChessboard(): Chessboard {
   const chessboard: Chessboard = [];
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 8; i++) {
     initEmptyRow(chessboard, i);
   }
   return chessboard;

@@ -1,5 +1,5 @@
 import { getNewBoard } from "./chessboard";
-import { isKingAttacked } from "./kingLogic";
+import { getKingPosition, isKingAttacked } from "./kingLogic";
 import { Chessboard, Color, ISquare, PieceType, Position } from "./types";
 
 function isOutOfBounds(y: number, x: number): boolean {
@@ -19,6 +19,7 @@ export function getLegalPawnMoves(
   }
 
   if (chessboard[y + direction][x].piece === undefined) {
+    legalMoves.add({ y: y + direction, x });
     if (
       y + 2 * direction >= 0 &&
       y + 2 * direction <= 7 &&
@@ -27,7 +28,6 @@ export function getLegalPawnMoves(
     ) {
       legalMoves.add({ y: y + 2 * direction, x });
     }
-    legalMoves.add({ y: y + direction, x });
   }
   if (
     x - 1 >= 0 &&
@@ -183,19 +183,34 @@ export function getLegalMoves(
   chessboard: Chessboard,
   square: ISquare
 ): Set<Position> {
+  let moves = new Set<Position>();
   switch (square.piece?.type) {
     case PieceType.PAWN:
-      return getLegalPawnMoves(chessboard, square);
+      moves = getLegalPawnMoves(chessboard, square);
+      break;
     case PieceType.KNIGHT:
-      return getLegalKnightMoves(chessboard, square);
+      moves = getLegalKnightMoves(chessboard, square);
+      break;
     case PieceType.BISHOP:
-      return getLegalBishopMoves(chessboard, square);
+      moves = getLegalBishopMoves(chessboard, square);
+      break;
     case PieceType.ROOK:
-      return getLegalRookMoves(chessboard, square);
+      moves = getLegalRookMoves(chessboard, square);
+      break;
     case PieceType.QUEEN:
-      return getLegalQueenMoves(chessboard, square);
+      moves = getLegalQueenMoves(chessboard, square);
+      break;
     case PieceType.KING:
-      return getLegalKingMoves(chessboard, square);
+      moves = getLegalKingMoves(chessboard, square);
+      break;
   }
-  return new Set();
+  const legalMoves = new Set<Position>();
+  for (const move of moves) {
+    const newChessboard = getNewBoard(chessboard, square, move);
+    const kingSquare = getKingPosition(newChessboard, square.piece?.color);
+    if (!isKingAttacked(newChessboard, kingSquare)) {
+      legalMoves.add(move);
+    }
+  }
+  return legalMoves;
 }

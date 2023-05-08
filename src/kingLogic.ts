@@ -6,6 +6,7 @@ import {
   getLegalRookMoves,
   getLegalQueenMoves,
   getLegalKingMoves,
+  getLegalMoves,
 } from "./legalMoves";
 import { Chessboard, Color, ISquare, PieceType, Position } from "./types";
 import {
@@ -89,11 +90,23 @@ export function isMated(chessboard: Chessboard, color: Color) {
       }
       for (const move of moves) {
         const newChessboard = getNewBoard(chessboard, square, move);
-        const kingSquare = getKingPosition(chessboard, color);
+        const kingSquare = getKingPosition(newChessboard, color);
         if (!isKingAttacked(newChessboard, kingSquare)) {
           return false;
         }
       }
+    }
+  }
+  return true;
+}
+
+export function isDraw(chessboard: Chessboard, color: Color): boolean {
+  /* Check if 'color' player is in a draw position. */
+  for (const row of chessboard) {
+    for (const square of row) {
+      if (square.piece?.color !== color) continue;
+      const moves = getLegalMoves(chessboard, square);
+      if (moves.size > 0) return false;
     }
   }
   return true;

@@ -3,6 +3,13 @@ export enum Color {
   BLACK,
 }
 
+export enum GameState {
+  PLAYING,
+  WHITE,
+  BLACK,
+  DRAW,
+}
+
 export enum PieceType {
   PAWN,
   KNIGHT,
