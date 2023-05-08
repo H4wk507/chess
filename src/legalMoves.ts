@@ -8,7 +8,7 @@ function isOutOfBounds(y: number, x: number): boolean {
 
 export function getLegalPawnMoves(
   chessboard: Chessboard,
-  pawnSquare: ISquare
+  pawnSquare: ISquare,
 ): Set<Position> {
   const y = pawnSquare.position.y;
   const x = pawnSquare.position.x;
@@ -48,7 +48,7 @@ export function getLegalPawnMoves(
 
 export function getLegalKnightMoves(
   chessboard: Chessboard,
-  knightSquare: ISquare
+  knightSquare: ISquare,
 ): Set<Position> {
   const x = knightSquare.position.x;
   const y = knightSquare.position.y;
@@ -76,7 +76,7 @@ export function getLegalKnightMoves(
 
 export function getLegalBishopMoves(
   chessboard: Chessboard,
-  bishopSquare: ISquare
+  bishopSquare: ISquare,
 ): Set<Position> {
   const directions = [
     [-1, -1],
@@ -106,7 +106,7 @@ export function getLegalBishopMoves(
 
 export function getLegalRookMoves(
   chessboard: Chessboard,
-  rookSquare: ISquare
+  rookSquare: ISquare,
 ): Set<Position> {
   const legalMoves = new Set<Position>();
   const directions = [
@@ -140,7 +140,7 @@ export function getLegalRookMoves(
 
 export function getLegalQueenMoves(
   chessboard: Chessboard,
-  queenSquare: ISquare
+  queenSquare: ISquare,
 ): Set<Position> {
   const legalBishopMoves = getLegalBishopMoves(chessboard, queenSquare);
   const legalRookMoves = getLegalRookMoves(chessboard, queenSquare);
@@ -149,7 +149,7 @@ export function getLegalQueenMoves(
 
 export function getLegalKingMoves(
   chessboard: Chessboard,
-  kingSquare: ISquare
+  kingSquare: ISquare,
 ): Set<Position> {
   const legalMoves = new Set<Position>();
   const y = kingSquare.position.y;
@@ -168,7 +168,7 @@ export function getLegalKingMoves(
         const newChessboard = getNewBoard(
           chessboard,
           kingSquare,
-          newKingSquare.position
+          newKingSquare.position,
         );
         if (!isKingAttacked(newChessboard, newKingSquare)) {
           legalMoves.add(newKingSquare.position);
@@ -181,7 +181,7 @@ export function getLegalKingMoves(
 
 export function getLegalMoves(
   chessboard: Chessboard,
-  square: ISquare
+  square: ISquare,
 ): Set<Position> {
   let moves = new Set<Position>();
   switch (square.piece?.type) {

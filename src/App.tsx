@@ -9,7 +9,7 @@ import {
   PieceType,
 } from "./types";
 import { getNewBoard, initChessboard, initEmptyChessboard } from "./chessboard";
-import { containsPosition, pieceToSvg } from "./utils";
+import { containsPosition, pieceToSvg, squareEquals } from "./utils";
 import { getKingPosition, isDraw, isKingAttacked, isMated } from "./kingLogic";
 import { getLegalMoves } from "./legalMoves";
 import { isValidMove } from "./validMoves";
@@ -32,7 +32,6 @@ initialChessboard[0][0] = {
 
 const moves = [Color.WHITE, Color.BLACK];
 
-// TODO: clicking same piece unclicks its
 function Square({
   square,
   selectedItem,
@@ -58,22 +57,25 @@ function Square({
 }) {
   const handleClick = () => {
     // TODO: refactor this mess
-    let kingSquare = getKingPosition(chessboard, moves[currentMove]);
-    if (square.piece && moves[currentMove] === square?.piece?.color) {
+    if (selectedItem && squareEquals(selectedItem, square)) {
+      setSelectedItem(null);
+      setLegalMoves(new Set());
+    } else if (square.piece && moves[currentMove] === square?.piece?.color) {
       setSelectedItem(square);
       setLegalMoves(getLegalMoves(chessboard, square));
     } else if (selectedItem) {
+      let kingSquare = getKingPosition(chessboard, moves[currentMove]);
       if (isKingAttacked(chessboard, kingSquare)) {
         if (!isValidMove(chessboard, selectedItem, square)) return;
         const newChessboard = getNewBoard(
           chessboard,
           selectedItem,
-          square.position
+          square.position,
         );
         kingSquare = getKingPosition(newChessboard, moves[currentMove]);
         if (!isKingAttacked(newChessboard, kingSquare)) {
           setChessboard(
-            getNewBoard(newChessboard, selectedItem, square.position)
+            getNewBoard(newChessboard, selectedItem, square.position),
           );
           setCurrentMove((currentMove + 1) % 2);
           setSelectedItem(null);
@@ -83,14 +85,14 @@ function Square({
         const newChessboard = getNewBoard(
           chessboard,
           selectedItem,
-          square.position
+          square.position,
         );
         const nextMove = (currentMove + 1) % 2;
         if (isMated(newChessboard, moves[nextMove])) {
           setGameState(
             moves[currentMove] === Color.WHITE
               ? GameState.WHITE
-              : GameState.BLACK
+              : GameState.BLACK,
           );
         } else if (isDraw(newChessboard, moves[nextMove])) {
           setGameState(GameState.DRAW);

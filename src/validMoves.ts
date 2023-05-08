@@ -13,7 +13,7 @@ import { Chessboard, ISquare, PieceType, Position } from "./types";
 export function isValidRookMove(
   chessboard: Chessboard,
   src: ISquare,
-  dst: Position
+  dst: Position,
 ): boolean {
   const legalMoves = getLegalRookMoves(chessboard, src);
   for (const move of legalMoves) {
@@ -25,7 +25,7 @@ export function isValidRookMove(
 export function isValidBishopMove(
   chessboard: Chessboard,
   src: ISquare,
-  dst: Position
+  dst: Position,
 ): boolean {
   const legalMoves = getLegalBishopMoves(chessboard, src);
   for (const move of legalMoves) {
@@ -37,7 +37,7 @@ export function isValidBishopMove(
 export function isValidKingMove(
   chessboard: Chessboard,
   src: ISquare,
-  dst: Position
+  dst: Position,
 ): boolean {
   // TODO: castle
   const legalMoves = getLegalKingMoves(chessboard, src);
@@ -48,7 +48,7 @@ export function isValidKingMove(
 }
 export function isValidKingMoveToNotAttacked(
   src: ISquare,
-  dst: Position
+  dst: Position,
 ): boolean {
   /* Check if the king's move is valid, we are assuming
    * that 'dst' position is not under attack.
@@ -61,7 +61,7 @@ export function isValidKingMoveToNotAttacked(
 export function isValidKnightMove(
   chessboard: Chessboard,
   src: ISquare,
-  dst: Position
+  dst: Position,
 ): boolean {
   const legalMoves = getLegalKnightMoves(chessboard, src);
   for (const move of legalMoves) {
@@ -73,7 +73,7 @@ export function isValidKnightMove(
 export function isValidQueenMove(
   chessboard: Chessboard,
   src: ISquare,
-  dst: Position
+  dst: Position,
 ): boolean {
   const legalMoves = getLegalQueenMoves(chessboard, src);
   for (const move of legalMoves) {
@@ -85,7 +85,7 @@ export function isValidQueenMove(
 export function isValidPawnMove(
   chessboard: Chessboard,
   src: ISquare,
-  dst: Position
+  dst: Position,
 ): boolean {
   // TODO: en passant
   const legalMoves = getLegalPawnMoves(chessboard, src);
@@ -98,7 +98,7 @@ export function isValidPawnMove(
 export function isValidMove(
   chessboard: Chessboard,
   src: ISquare,
-  dst: ISquare
+  dst: ISquare,
 ): boolean {
   if (dst.piece && dst.piece.color === src.piece?.color) {
     return false;

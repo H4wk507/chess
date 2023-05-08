@@ -63,7 +63,7 @@ function initFirstRow(chessboard: Chessboard, row: number, color: Color): void {
 function initSecondRow(
   chessboard: Chessboard,
   row: number,
-  color: Color
+  color: Color,
 ): void {
   chessboard.push(
     Array.from({ length: 8 }, (_, i) => {
@@ -71,7 +71,7 @@ function initSecondRow(
         piece: { type: PieceType.PAWN, color, hasMoved: false },
         position: { x: i, y: row },
       };
-    })
+    }),
   );
 }
 
@@ -79,14 +79,14 @@ export function initEmptyRow(chessboard: Chessboard, row: number): void {
   chessboard.push(
     Array.from({ length: 8 }, (_, i) => {
       return { position: { x: i, y: row } };
-    })
+    }),
   );
 }
 
 export function getNewBoard(
   chessboard: Chessboard,
   src: ISquare,
-  dst: Position
+  dst: Position,
 ): Chessboard {
   /* Get a new chessboard where src has moved to dst position. */
   return chessboard.map((row, i) => {

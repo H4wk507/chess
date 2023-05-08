@@ -20,13 +20,13 @@ import {
 
 export function getKingPosition(
   chessboard: Chessboard,
-  color?: Color
+  color?: Color,
 ): ISquare {
   const kingSquare = chessboard
     .flat()
     .find(
       (square) =>
-        square.piece?.type === PieceType.KING && square.piece?.color === color
+        square.piece?.type === PieceType.KING && square.piece?.color === color,
     );
   if (kingSquare !== undefined) return kingSquare;
 
@@ -35,7 +35,7 @@ export function getKingPosition(
 
 export function isKingAttacked(
   chessboard: Chessboard,
-  kingSquare: ISquare
+  kingSquare: ISquare,
 ): boolean {
   return chessboard.flat().some((square) => {
     if (square.piece?.color === kingSquare.piece?.color) {
