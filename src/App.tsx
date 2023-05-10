@@ -20,14 +20,11 @@ import {
 } from "./kingLogic";
 import { getLegalMoves } from "./legalMoves";
 import { isValidMove } from "./validMoves";
+import { isPawnPromotion, promotePawn } from "./pawnLogic";
 
-const initialChessboard = initChessboard();
+const initialChessboard = initEmptyChessboard();
 
 /*
-initialChessboard[3][3] = {
-  piece: { type: PieceType.QUEEN, color: Color.BLACK, hasMoved: true },
-  position: { y: 3, x: 3 },
-};
 initialChessboard[7][4] = {
   piece: { type: PieceType.KING, color: Color.WHITE, hasMoved: false },
   position: { y: 7, x: 4 },
@@ -36,19 +33,19 @@ initialChessboard[0][1] = {
   piece: { type: PieceType.KING, color: Color.BLACK, hasMoved: true },
   position: { y: 0, x: 1 },
 };
-initialChessboard[7][0] = {
-  piece: { type: PieceType.ROOK, color: Color.WHITE, hasMoved: false },
-  position: { y: 7, x: 0 },
+initialChessboard[1][6] = {
+  piece: { type: PieceType.PAWN, color: Color.WHITE, hasMoved: false },
+  position: { y: 1, x: 6 },
 };
-initialChessboard[7][7] = {
-  piece: { type: PieceType.ROOK, color: Color.WHITE, hasMoved: false },
-  position: { y: 7, x: 7 },
+initialChessboard[3][3] = {
+  piece: { type: PieceType.PAWN, color: Color.BLACK, hasMoved: true },
+  position: { y: 3, x: 3 },
 };
 */
 
 const moves = [Color.WHITE, Color.BLACK];
 
-// TODO: promotion
+// TODO: host on ipfs
 function Square({
   square,
   selectedItem,
@@ -108,6 +105,9 @@ function Square({
             selectedItem,
             square.position,
           );
+          if (isPawnPromotion(selectedItem, square.position)) {
+            newChessboard = promotePawn(newChessboard, square.position);
+          }
         }
         const nextMove = (currentMove + 1) % 2;
         if (isMated(newChessboard, moves[nextMove])) {
