@@ -1,4 +1,4 @@
-import { getNewBoard } from "./chessboard";
+import { getNewBoard, hasFreeRow } from "./chessboard";
 import { getKingPosition, isKingAttacked } from "./kingLogic";
 import { Chessboard, Color, ISquare, PieceType, Position } from "./types";
 
@@ -176,7 +176,85 @@ export function getLegalKingMoves(
       }
     }
   }
+  if (isKingAttacked(chessboard, kingSquare)) {
+    return legalMoves;
+  }
+  const castleMoves = getLegalCastleMoves(chessboard, kingSquare);
+  const notAttackedCastleMoves = getNotAttackedCastleMoves(
+    chessboard,
+    castleMoves,
+    kingSquare,
+  );
+  for (const move of notAttackedCastleMoves) {
+    legalMoves.add(move);
+  }
   return legalMoves;
+}
+
+function getLegalCastleMoves(
+  chessboard: Chessboard,
+  kingSquare: ISquare,
+): Set<Position> {
+  const rookY = kingSquare.piece?.color === Color.WHITE ? 7 : 0;
+  const castleMoves = new Set<Position>();
+  for (const rookX of [0, 7]) {
+    const rookPosition = { y: rookY, x: rookX };
+    if (
+      !kingSquare.piece?.hasMoved &&
+      chessboard[rookY][rookX].piece?.type === PieceType.ROOK &&
+      !chessboard[rookY][rookX].piece?.hasMoved &&
+      hasFreeRow(chessboard, kingSquare.position, rookPosition)
+    ) {
+      const kingX = rookX === 0 ? rookX + 2 : rookX - 1;
+      castleMoves.add({ y: rookY, x: kingX });
+    }
+  }
+  return castleMoves;
+}
+
+function getNotAttackedCastleMoves(
+  chessboard: Chessboard,
+  castleMoves: Set<Position>,
+  kingSquare: ISquare,
+): Set<Position> {
+  /* Filter out castle moves that are under attack. */
+  const kingY = kingSquare.position.y;
+  const notAttackedCastleMoves = new Set<Position>();
+  for (const move of castleMoves) {
+    // TODO: refactor
+    const kingX = kingSquare.position.x;
+    const newKingX = move.x;
+    let flag = false;
+    if (kingX < newKingX) {
+      for (let x = kingX + 1; x <= newKingX; x++) {
+        const newKingSquare = { ...kingSquare, position: { x, y: kingY } };
+        const newChessboard = getNewBoard(
+          chessboard,
+          kingSquare,
+          newKingSquare.position,
+        );
+        if (isKingAttacked(newChessboard, newKingSquare)) {
+          flag = true;
+          break;
+        }
+      }
+    } else {
+      for (let x = kingX - 1; x >= newKingX; x--) {
+        const newKingSquare = { ...kingSquare, position: { x, y: kingY } };
+        const newChessboard = getNewBoard(
+          chessboard,
+          kingSquare,
+          newKingSquare.position,
+        );
+        if (isKingAttacked(newChessboard, newKingSquare)) {
+          flag = true;
+          break;
+        }
+      }
+    }
+    if (!flag) notAttackedCastleMoves.add({ x: newKingX, y: kingY });
+  }
+  return notAttackedCastleMoves;
 }
 
 export function getLegalMoves(

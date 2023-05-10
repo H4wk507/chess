@@ -39,7 +39,6 @@ export function isValidKingMove(
   src: ISquare,
   dst: Position,
 ): boolean {
-  // TODO: castle
   const legalMoves = getLegalKingMoves(chessboard, src);
   for (const move of legalMoves) {
     if (move.x === dst.x && move.y === dst.y) return true;

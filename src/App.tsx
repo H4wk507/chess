@@ -10,28 +10,41 @@ import {
 } from "./types";
 import { getNewBoard, initChessboard, initEmptyChessboard } from "./chessboard";
 import { containsPosition, pieceToSvg, squareEquals } from "./utils";
-import { getKingPosition, isDraw, isKingAttacked, isMated } from "./kingLogic";
+import {
+  getKingPosition,
+  isCastle,
+  isDraw,
+  isKingAttacked,
+  isMated,
+  makeCastle,
+} from "./kingLogic";
 import { getLegalMoves } from "./legalMoves";
 import { isValidMove } from "./validMoves";
 
 const initialChessboard = initChessboard();
+
 /*
-initialChessboard[4][5] = {
-  piece: { type: PieceType.QUEEN, color: Color.WHITE, hasMoved: true },
-  position: { y: 4, x: 5 },
+initialChessboard[3][6] = {
+  piece: { type: PieceType.QUEEN, color: Color.BLACK, hasMoved: true },
+  position: { y: 3, x: 6 },
 };
-initialChessboard[6][5] = {
-  piece: { type: PieceType.KING, color: Color.WHITE, hasMoved: true },
-  position: { y: 6, x: 5 },
+initialChessboard[7][4] = {
+  piece: { type: PieceType.KING, color: Color.WHITE, hasMoved: false },
+  position: { y: 7, x: 4 },
 };
-initialChessboard[0][0] = {
+initialChessboard[0][1] = {
   piece: { type: PieceType.KING, color: Color.BLACK, hasMoved: true },
-  position: { y: 0, x: 0 },
+  position: { y: 0, x: 1 },
+};
+initialChessboard[7][7] = {
+  piece: { type: PieceType.ROOK, color: Color.WHITE, hasMoved: false },
+  position: { y: 7, x: 7 },
 };
 */
 
 const moves = [Color.WHITE, Color.BLACK];
 
+// TODO: promotion
 function Square({
   square,
   selectedItem,
@@ -82,11 +95,16 @@ function Square({
           setLegalMoves(new Set());
         }
       } else if (isValidMove(chessboard, selectedItem, square)) {
-        const newChessboard = getNewBoard(
-          chessboard,
-          selectedItem,
-          square.position,
-        );
+        let newChessboard = null;
+        if (isCastle(selectedItem, square.position)) {
+          newChessboard = makeCastle(chessboard, selectedItem, square.position);
+        } else {
+          newChessboard = getNewBoard(
+            chessboard,
+            selectedItem,
+            square.position,
+          );
+        }
         const nextMove = (currentMove + 1) % 2;
         if (isMated(newChessboard, moves[nextMove])) {
           setGameState(

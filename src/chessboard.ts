@@ -113,3 +113,18 @@ export function getNewBoard(
     }
   });
 }
+
+export function hasFreeRow(
+  chessboard: Chessboard,
+  src: Position,
+  dst: Position,
+): boolean {
+  const y = src.y;
+  let startX = src.x;
+  let endX = dst.x;
+  if (startX > endX) [startX, endX] = [endX, startX];
+  for (let x = startX + 1; x < endX; x++) {
+    if (chessboard[y][x].piece !== undefined) return false;
+  }
+  return true;
+}

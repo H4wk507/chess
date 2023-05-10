@@ -111,3 +111,31 @@ export function isDraw(chessboard: Chessboard, color: Color): boolean {
   }
   return true;
 }
+
+export function isCastle(src: ISquare, dst: Position): boolean {
+  /* Check if a move is a castle move. */
+  const kingY = src.piece?.color === Color.WHITE ? 7 : 0;
+  const kingXs = [2, 6];
+  return (
+    src.piece?.type === PieceType.KING &&
+    !src.piece?.hasMoved &&
+    dst.y === kingY &&
+    kingXs.includes(dst.x)
+  );
+}
+
+export function makeCastle(
+  chessboard: Chessboard,
+  kingSquare: ISquare,
+  dst: Position,
+): Chessboard {
+  const y = dst.y;
+  const newKingX = dst.x;
+  const rookSquare = newKingX === 2 ? chessboard[y][0] : chessboard[y][7];
+  const newRookX = newKingX === 2 ? newKingX + 1 : newKingX - 1;
+  const newRookPosition = { x: newRookX, y };
+
+  let newChessboard = getNewBoard(chessboard, kingSquare, dst);
+  newChessboard = getNewBoard(newChessboard, rookSquare, newRookPosition);
+  return newChessboard;
+}
