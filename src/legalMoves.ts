@@ -218,43 +218,32 @@ function getNotAttackedCastleMoves(
   kingSquare: ISquare,
 ): Set<Position> {
   /* Filter out castle moves that are under attack. */
-  const kingY = kingSquare.position.y;
   const notAttackedCastleMoves = new Set<Position>();
-  for (const move of castleMoves) {
-    // TODO: refactor
-    const kingX = kingSquare.position.x;
-    const newKingX = move.x;
-    let flag = false;
-    if (kingX < newKingX) {
-      for (let x = kingX + 1; x <= newKingX; x++) {
-        const newKingSquare = { ...kingSquare, position: { x, y: kingY } };
-        const newChessboard = getNewBoard(
-          chessboard,
-          kingSquare,
-          newKingSquare.position,
-        );
-        if (isKingAttacked(newChessboard, newKingSquare)) {
-          flag = true;
-          break;
-        }
-      }
-    } else {
-      for (let x = kingX - 1; x >= newKingX; x--) {
-        const newKingSquare = { ...kingSquare, position: { x, y: kingY } };
-        const newChessboard = getNewBoard(
-          chessboard,
-          kingSquare,
-          newKingSquare.position,
-        );
-        if (isKingAttacked(newChessboard, newKingSquare)) {
-          flag = true;
-          break;
-        }
-      }
+  for (const newKingPosition of castleMoves) {
+    if (!attackedRow(chessboard, kingSquare, newKingPosition)) {
+      notAttackedCastleMoves.add(newKingPosition);
     }
-    if (!flag) notAttackedCastleMoves.add({ x: newKingX, y: kingY });
   }
   return notAttackedCastleMoves;
+}
+
+function attackedRow(
+  chessboard: Chessboard,
+  src: ISquare,
+  dst: Position,
+): boolean {
+  const startX = src.position.x;
+  const endX = dst.x;
+  const y = src.position.y;
+  const dx = startX < endX ? 1 : -1;
+  for (let x = startX + dx; startX < endX ? x <= endX : x >= endX; x += dx) {
+    const newSquare = { ...src, position: { x, y } };
+    const newChessboard = getNewBoard(chessboard, src, newSquare.position);
+    if (isKingAttacked(newChessboard, newSquare)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function getLegalMoves(

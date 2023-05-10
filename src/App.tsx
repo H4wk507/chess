@@ -24,9 +24,9 @@ import { isValidMove } from "./validMoves";
 const initialChessboard = initChessboard();
 
 /*
-initialChessboard[3][6] = {
+initialChessboard[3][3] = {
   piece: { type: PieceType.QUEEN, color: Color.BLACK, hasMoved: true },
-  position: { y: 3, x: 6 },
+  position: { y: 3, x: 3 },
 };
 initialChessboard[7][4] = {
   piece: { type: PieceType.KING, color: Color.WHITE, hasMoved: false },
@@ -35,6 +35,10 @@ initialChessboard[7][4] = {
 initialChessboard[0][1] = {
   piece: { type: PieceType.KING, color: Color.BLACK, hasMoved: true },
   position: { y: 0, x: 1 },
+};
+initialChessboard[7][0] = {
+  piece: { type: PieceType.ROOK, color: Color.WHITE, hasMoved: false },
+  position: { y: 7, x: 0 },
 };
 initialChessboard[7][7] = {
   piece: { type: PieceType.ROOK, color: Color.WHITE, hasMoved: false },
