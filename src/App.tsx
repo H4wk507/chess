@@ -9,7 +9,12 @@ import {
   PieceType,
 } from "./types";
 import { getNewBoard, initChessboard, initEmptyChessboard } from "./chessboard";
-import { containsPosition, pieceToSvg, squareEquals } from "./utils";
+import {
+  colorToString,
+  containsPosition,
+  pieceToSvg,
+  squareEquals,
+} from "./utils";
 import {
   getKingPosition,
   isCastle,
@@ -22,7 +27,7 @@ import { getLegalMoves } from "./legalMoves";
 import { isValidMove } from "./validMoves";
 import { isPawnPromotion, promotePawn } from "./pawnLogic";
 
-const initialChessboard = initEmptyChessboard();
+const initialChessboard = initChessboard();
 
 /*
 initialChessboard[7][4] = {
@@ -45,13 +50,18 @@ initialChessboard[3][3] = {
 
 const moves = [Color.WHITE, Color.BLACK];
 
+/* 
+en Passant: Knowledge of the last move taken. Can be accommodated by retaining a lastMove data structure, or retaining the previous board state.
+Fifty move rule: requires history of when the last capture or pawn move. Can be accomplished via a lastPawnMoveOrCapture counter
+Threefold repetition: requires all previous board states since the last castle, pawn move or capture. A list of hashes of previous states may be an option.
+*/
 // TODO: host on ipfs
 function Square({
   square,
-  selectedItem,
-  setSelectedItem,
   chessboard,
   setChessboard,
+  selectedItem,
+  setSelectedItem,
   currentMove,
   setCurrentMove,
   legalMoves,
@@ -59,10 +69,10 @@ function Square({
   setGameState,
 }: {
   square: ISquare;
-  selectedItem: null | ISquare;
-  setSelectedItem: (item: null | ISquare) => void;
   chessboard: Chessboard;
   setChessboard: (chessboard: Chessboard) => void;
+  selectedItem: null | ISquare;
+  setSelectedItem: (item: null | ISquare) => void;
   currentMove: number;
   setCurrentMove: (move: number) => void;
   legalMoves: Set<Position>;
@@ -71,13 +81,20 @@ function Square({
 }) {
   const handleClick = () => {
     // TODO: refactor this mess
+
     if (selectedItem && squareEquals(selectedItem, square)) {
       setSelectedItem(null);
       setLegalMoves(new Set());
-    } else if (square.piece && moves[currentMove] === square?.piece?.color) {
+      return;
+    }
+
+    if (square.piece && moves[currentMove] === square?.piece?.color) {
       setSelectedItem(square);
       setLegalMoves(getLegalMoves(chessboard, square));
-    } else if (selectedItem) {
+      return;
+    }
+
+    if (selectedItem) {
       let kingSquare = getKingPosition(chessboard, moves[currentMove]);
       if (isKingAttacked(chessboard, kingSquare)) {
         if (!isValidMove(chessboard, selectedItem, square)) return;
@@ -127,12 +144,12 @@ function Square({
     }
   };
 
-  let color =
-    (square.position.x + square.position.y) % 2 === 0 ? "white" : "black";
+  const imagePath = pieceToSvg(square?.piece);
+  let color = colorToString(moves[(square.position.x + square.position.y) % 2]);
   if (containsPosition(square.position, legalMoves)) {
     color = "available";
   }
-  const imagePath = pieceToSvg(square?.piece);
+
   return (
     <div className={`square ${color}`} onClick={handleClick}>
       {imagePath && <img src={imagePath} />}
@@ -140,48 +157,75 @@ function Square({
   );
 }
 
-function App() {
-  const [selectedItem, setSelectedItem] = useState<null | ISquare>(null);
+function ChessboardComponent({
+  currentMove,
+  setCurrentMove,
+  setGameState,
+}: {
+  currentMove: Color;
+  setCurrentMove: (move: Color) => void;
+  setGameState: (state: GameState) => void;
+}) {
   const [chessboard, setChessboard] = useState(initialChessboard);
-  const [currentMove, setCurrentMove] = useState(0);
+  const [selectedItem, setSelectedItem] = useState<null | ISquare>(null);
   const [legalMoves, setLegalMoves] = useState<Set<Position>>(new Set());
+
+  return (
+    <div className="chessboard">
+      {chessboard.map((row, i) => {
+        return (
+          <div key={i} className="row">
+            {row.map((square, j) => (
+              <Square
+                key={j}
+                square={square}
+                chessboard={chessboard}
+                setChessboard={setChessboard}
+                selectedItem={selectedItem}
+                setSelectedItem={setSelectedItem}
+                currentMove={currentMove}
+                setCurrentMove={setCurrentMove}
+                legalMoves={legalMoves}
+                setLegalMoves={setLegalMoves}
+                setGameState={setGameState}
+              />
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function Turn({ currentMove }: { currentMove: Color }) {
+  return <p>Turn: {moves[currentMove] === Color.WHITE ? "white" : "black"}</p>;
+}
+
+function GameStateComponent({ gameState }: { gameState: GameState }) {
+  return gameState !== GameState.PLAYING ? (
+    <p>
+      {gameState === GameState.WHITE
+        ? "white won"
+        : gameState === GameState.BLACK
+        ? "black won"
+        : "draw"}
+    </p>
+  ) : null;
+}
+
+function App() {
+  const [currentMove, setCurrentMove] = useState<Color>(Color.WHITE);
   const [gameState, setGameState] = useState<GameState>(GameState.PLAYING);
 
   return (
     <div className="App">
-      <div className="chessboard">
-        {chessboard.map((row, i) => {
-          return (
-            <div key={i} className="row">
-              {row.map((square, j) => (
-                <Square
-                  key={j}
-                  square={square}
-                  selectedItem={selectedItem}
-                  setSelectedItem={setSelectedItem}
-                  chessboard={chessboard}
-                  setChessboard={setChessboard}
-                  currentMove={currentMove}
-                  setCurrentMove={setCurrentMove}
-                  legalMoves={legalMoves}
-                  setLegalMoves={setLegalMoves}
-                  setGameState={setGameState}
-                />
-              ))}
-            </div>
-          );
-        })}
-      </div>
-      <p>Turn: {moves[currentMove] === Color.WHITE ? "white" : "black"}</p>
-      {gameState !== GameState.PLAYING && (
-        <p>
-          {gameState === GameState.WHITE
-            ? "white won"
-            : gameState === GameState.BLACK
-            ? "black won"
-            : "draw"}
-        </p>
-      )}
+      <ChessboardComponent
+        currentMove={currentMove}
+        setCurrentMove={setCurrentMove}
+        setGameState={setGameState}
+      />
+      <Turn currentMove={currentMove} />
+      <GameStateComponent gameState={gameState} />
     </div>
   );
 }
