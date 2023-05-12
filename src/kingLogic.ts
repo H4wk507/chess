@@ -9,20 +9,9 @@ import {
   getLegalMoves,
 } from "./legalMoves";
 import { Chessboard, Color, ISquare, PieceType, Position } from "./types";
-import {
-  isValidBishopMove,
-  isValidKingMoveToNotAttacked,
-  isValidKnightMove,
-  isValidPawnMove,
-  isValidQueenMove,
-  isValidRookMove,
-} from "./validMoves";
+import { isValidKingMoveToNotAttacked, isValidMoveUtil } from "./validMoves";
 
-// rename to getKingSquare as it returns ISquare?
-export function getKingPosition(
-  chessboard: Chessboard,
-  color?: Color,
-): ISquare {
+export function getKingSquare(chessboard: Chessboard, color?: Color): ISquare {
   const kingSquare = chessboard
     .flat()
     .find(
@@ -43,22 +32,47 @@ export function isKingAttacked(
     // unreachable
     return false;
   }
-  const kingSquare = getKingPosition(chessboard, kingColor);
+  const kingSquare = getKingSquare(chessboard, kingColor);
   return chessboard.flat().some((square) => {
     if (square.piece?.color === kingColor) {
       return false;
     }
     switch (square.piece?.type) {
       case PieceType.PAWN:
-        return isValidPawnMove(chessboard, square, kingSquare.position);
+        return isValidMoveUtil(
+          getLegalPawnMoves,
+          chessboard,
+          square,
+          kingSquare.position,
+        );
       case PieceType.KNIGHT:
-        return isValidKnightMove(chessboard, square, kingSquare.position);
+        return isValidMoveUtil(
+          getLegalKnightMoves,
+          chessboard,
+          square,
+          kingSquare.position,
+        );
       case PieceType.BISHOP:
-        return isValidBishopMove(chessboard, square, kingSquare.position);
+        return isValidMoveUtil(
+          getLegalBishopMoves,
+          chessboard,
+          square,
+          kingSquare.position,
+        );
       case PieceType.ROOK:
-        return isValidRookMove(chessboard, square, kingSquare.position);
+        return isValidMoveUtil(
+          getLegalRookMoves,
+          chessboard,
+          square,
+          kingSquare.position,
+        );
       case PieceType.QUEEN:
-        return isValidQueenMove(chessboard, square, kingSquare.position);
+        return isValidMoveUtil(
+          getLegalQueenMoves,
+          chessboard,
+          square,
+          kingSquare.position,
+        );
       case PieceType.KING:
         return isValidKingMoveToNotAttacked(square, kingSquare.position);
     }

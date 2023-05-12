@@ -90,13 +90,13 @@ export function getNewBoard(
 ): Chessboard {
   /* Get a new chessboard where src has moved to dst position. */
   if (src === undefined || src.piece === undefined) {
-    console.log("unreachable")
-    return []
+    // unreachable
+    return [];
   }
   const newChessboard: Chessboard = structuredClone(chessboard);
   newChessboard[src.position.y][src.position.x].piece = undefined;
-  newChessboard[dst.y][dst.x].piece = {...src.piece, hasMoved: true}
-  return newChessboard
+  newChessboard[dst.y][dst.x].piece = { ...src.piece, hasMoved: true };
+  return newChessboard;
 }
 
 export function hasFreeRow(
