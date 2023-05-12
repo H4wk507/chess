@@ -16,7 +16,6 @@ import {
   squareEquals,
 } from "./utils";
 import {
-  getKingPosition,
   isCastle,
   isDraw,
   isKingAttacked,
@@ -51,11 +50,17 @@ initialChessboard[3][3] = {
 const moves = [Color.WHITE, Color.BLACK];
 
 /* 
-en Passant: Knowledge of the last move taken. Can be accommodated by retaining a lastMove data structure, or retaining the previous board state.
-Fifty move rule: requires history of when the last capture or pawn move. Can be accomplished via a lastPawnMoveOrCapture counter
-Threefold repetition: requires all previous board states since the last castle, pawn move or capture. A list of hashes of previous states may be an option.
+en Passant: Knowledge of the last move taken. Can be accommodated by retaining a lastMove data structure
+
+Fifty move rule: Draw if 50 moves were made without any capture or pawn move. 
+Requires history of when the last capture or pawn move. Could be done using lastPawnMoveOrCapture counter
+
+Threefold repetition: Draw if the same position occurs three times during the game. 
+Requires all previous board states since the last castle, pawn move or capture. 
 */
+
 // TODO: host on ipfs
+// TODO: propose draw button, resign button
 function Square({
   square,
   chessboard,
@@ -80,8 +85,6 @@ function Square({
   setGameState: (state: GameState) => void;
 }) {
   const handleClick = () => {
-    // TODO: refactor this mess
-
     if (selectedItem && squareEquals(selectedItem, square)) {
       setSelectedItem(null);
       setLegalMoves(new Set());
@@ -94,26 +97,23 @@ function Square({
       return;
     }
 
+    if (selectedItem && !isValidMove(chessboard, selectedItem, square)) {
+      return;
+    }
+
+    const nextMove = (currentMove + 1) % 2;
+    let newChessboard = null;
     if (selectedItem) {
-      let kingSquare = getKingPosition(chessboard, moves[currentMove]);
-      if (isKingAttacked(chessboard, kingSquare)) {
-        if (!isValidMove(chessboard, selectedItem, square)) return;
-        const newChessboard = getNewBoard(
-          chessboard,
-          selectedItem,
-          square.position,
-        );
-        kingSquare = getKingPosition(newChessboard, moves[currentMove]);
-        if (!isKingAttacked(newChessboard, kingSquare)) {
-          setChessboard(
-            getNewBoard(newChessboard, selectedItem, square.position),
+      if (isKingAttacked(chessboard, moves[currentMove])) {
+        newChessboard = getNewBoard(chessboard, selectedItem, square.position);
+        if (!isKingAttacked(newChessboard, moves[currentMove])) {
+          newChessboard = getNewBoard(
+            newChessboard,
+            selectedItem,
+            square.position,
           );
-          setCurrentMove((currentMove + 1) % 2);
-          setSelectedItem(null);
-          setLegalMoves(new Set());
         }
-      } else if (isValidMove(chessboard, selectedItem, square)) {
-        let newChessboard = null;
+      } else {
         if (isCastle(selectedItem, square.position)) {
           newChessboard = makeCastle(chessboard, selectedItem, square.position);
         } else {
@@ -126,21 +126,20 @@ function Square({
             newChessboard = promotePawn(newChessboard, square.position);
           }
         }
-        const nextMove = (currentMove + 1) % 2;
-        if (isMated(newChessboard, moves[nextMove])) {
-          setGameState(
-            moves[currentMove] === Color.WHITE
-              ? GameState.WHITE
-              : GameState.BLACK,
-          );
-        } else if (isDraw(newChessboard, moves[nextMove])) {
-          setGameState(GameState.DRAW);
-        }
-        setChessboard(newChessboard);
-        setCurrentMove(nextMove);
-        setSelectedItem(null);
-        setLegalMoves(new Set());
       }
+      if (isMated(newChessboard, moves[nextMove])) {
+        setGameState(
+          moves[currentMove] === Color.WHITE
+            ? GameState.WHITE
+            : GameState.BLACK,
+        );
+      } else if (isDraw(newChessboard, moves[nextMove])) {
+        setGameState(GameState.DRAW);
+      }
+      setChessboard(newChessboard);
+      setCurrentMove(nextMove);
+      setSelectedItem(null);
+      setLegalMoves(new Set());
     }
   };
 
@@ -202,15 +201,20 @@ function Turn({ currentMove }: { currentMove: Color }) {
 }
 
 function GameStateComponent({ gameState }: { gameState: GameState }) {
-  return gameState !== GameState.PLAYING ? (
-    <p>
-      {gameState === GameState.WHITE
-        ? "white won"
-        : gameState === GameState.BLACK
-        ? "black won"
-        : "draw"}
-    </p>
-  ) : null;
+  let gameStateString = "";
+  switch (gameState) {
+    case GameState.WHITE:
+      gameStateString = "white won";
+      break;
+    case GameState.BLACK:
+      gameStateString = "black won";
+      break;
+    case GameState.DRAW:
+      gameStateString = "draw";
+      break;
+  }
+
+  return <>{gameStateString && <p>{gameStateString}</p>}</>;
 }
 
 function App() {

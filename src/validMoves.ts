@@ -1,5 +1,5 @@
 import { getNewBoard } from "./chessboard";
-import { getKingPosition, isKingAttacked } from "./kingLogic";
+import { isKingAttacked } from "./kingLogic";
 import {
   getLegalBishopMoves,
   getLegalKingMoves,
@@ -124,6 +124,5 @@ export function isValidMove(
       break;
   }
   const newChessboard = getNewBoard(chessboard, src, dst.position);
-  const kingSquare = getKingPosition(newChessboard, src.piece?.color);
-  return !isKingAttacked(newChessboard, kingSquare);
+  return !isKingAttacked(newChessboard, src.piece?.color);
 }

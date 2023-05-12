@@ -18,6 +18,7 @@ import {
   isValidRookMove,
 } from "./validMoves";
 
+// rename to getKingSquare as it returns ISquare?
 export function getKingPosition(
   chessboard: Chessboard,
   color?: Color,
@@ -35,10 +36,16 @@ export function getKingPosition(
 
 export function isKingAttacked(
   chessboard: Chessboard,
-  kingSquare: ISquare,
+  kingColor?: Color,
 ): boolean {
+  /* Check if 'kingColor' color king is under attack. */
+  if (kingColor === undefined) {
+    // unreachable
+    return false;
+  }
+  const kingSquare = getKingPosition(chessboard, kingColor);
   return chessboard.flat().some((square) => {
-    if (square.piece?.color === kingSquare.piece?.color) {
+    if (square.piece?.color === kingColor) {
       return false;
     }
     switch (square.piece?.type) {
@@ -60,8 +67,7 @@ export function isKingAttacked(
 
 export function isMated(chessboard: Chessboard, color: Color) {
   /* Check if 'color' player is mated. */
-  const kingSquare = getKingPosition(chessboard, color);
-  if (!isKingAttacked(chessboard, kingSquare)) {
+  if (!isKingAttacked(chessboard, color)) {
     return false;
   }
   for (const row of chessboard) {
@@ -90,8 +96,7 @@ export function isMated(chessboard: Chessboard, color: Color) {
       }
       for (const move of moves) {
         const newChessboard = getNewBoard(chessboard, square, move);
-        const kingSquare = getKingPosition(newChessboard, color);
-        if (!isKingAttacked(newChessboard, kingSquare)) {
+        if (!isKingAttacked(newChessboard, color)) {
           return false;
         }
       }

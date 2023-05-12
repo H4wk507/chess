@@ -89,29 +89,14 @@ export function getNewBoard(
   dst: Position,
 ): Chessboard {
   /* Get a new chessboard where src has moved to dst position. */
-  return chessboard.map((row, i) => {
-    if (i !== dst.y && i !== src.position.y) {
-      return row;
-    } else {
-      return row.map((square, j) => {
-        if (i === src.position.y && j === src.position.x)
-          return { ...src, piece: undefined };
-        else if (i === dst.y && j === dst.x) {
-          return {
-            ...square,
-            piece: {
-              // @ts-ignore
-              type: src.piece.type, // @ts-ignore
-              color: src.piece.color,
-              hasMoved: true,
-            },
-          };
-        } else {
-          return square;
-        }
-      });
-    }
-  });
+  if (src === undefined || src.piece === undefined) {
+    console.log("unreachable")
+    return []
+  }
+  const newChessboard: Chessboard = structuredClone(chessboard);
+  newChessboard[src.position.y][src.position.x].piece = undefined;
+  newChessboard[dst.y][dst.x].piece = {...src.piece, hasMoved: true}
+  return newChessboard
 }
 
 export function hasFreeRow(
