@@ -56,3 +56,12 @@ export function squareEquals(s1: ISquare, s2: ISquare): boolean {
     pieceEquals(s1.piece, s2.piece) && positionEquals(s1.position, s2.position)
   );
 }
+
+export function colorToString(color: Color): string {
+  switch (color) {
+    case Color.WHITE:
+      return "white";
+    case Color.BLACK:
+      return "black";
+  }
+}

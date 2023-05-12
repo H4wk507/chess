@@ -1,5 +1,5 @@
 import { getNewBoard, hasFreeRow } from "./chessboard";
-import { getKingPosition, isKingAttacked } from "./kingLogic";
+import { isKingAttacked } from "./kingLogic";
 import { Chessboard, Color, ISquare, PieceType, Position } from "./types";
 
 function isOutOfBounds(y: number, x: number): boolean {
@@ -154,29 +154,23 @@ export function getLegalKingMoves(
   const legalMoves = new Set<Position>();
   const y = kingSquare.position.y;
   const x = kingSquare.position.x;
+  const color = kingSquare.piece?.color;
   for (const dy of [-1, 0, 1]) {
     for (const dx of [-1, 0, 1]) {
       if (
         (dx !== 0 || dy !== 0) &&
         !isOutOfBounds(y + dy, x + dx) &&
-        chessboard[y + dy][x + dx].piece?.color !== kingSquare.piece?.color
+        chessboard[y + dy][x + dx].piece?.color !== color
       ) {
-        const newKingSquare = {
-          ...kingSquare,
-          position: { y: y + dy, x: x + dx },
-        };
-        const newChessboard = getNewBoard(
-          chessboard,
-          kingSquare,
-          newKingSquare.position,
-        );
-        if (!isKingAttacked(newChessboard, newKingSquare)) {
-          legalMoves.add(newKingSquare.position);
+        const newPosition = { y: y + dy, x: x + dx };
+        const newChessboard = getNewBoard(chessboard, kingSquare, newPosition);
+        if (!isKingAttacked(newChessboard, color)) {
+          legalMoves.add(newPosition);
         }
       }
     }
   }
-  if (isKingAttacked(chessboard, kingSquare)) {
+  if (isKingAttacked(chessboard, color)) {
     return legalMoves;
   }
   const castleMoves = getLegalCastleMoves(chessboard, kingSquare);
@@ -237,9 +231,9 @@ function attackedRow(
   const y = src.position.y;
   const dx = startX < endX ? 1 : -1;
   for (let x = startX + dx; startX < endX ? x <= endX : x >= endX; x += dx) {
-    const newSquare = { ...src, position: { x, y } };
-    const newChessboard = getNewBoard(chessboard, src, newSquare.position);
-    if (isKingAttacked(newChessboard, newSquare)) {
+    const newPosition = { x, y };
+    const newChessboard = getNewBoard(chessboard, src, newPosition);
+    if (isKingAttacked(newChessboard, src.piece?.color)) {
       return true;
     }
   }
@@ -274,8 +268,7 @@ export function getLegalMoves(
   const legalMoves = new Set<Position>();
   for (const move of moves) {
     const newChessboard = getNewBoard(chessboard, square, move);
-    const kingSquare = getKingPosition(newChessboard, square.piece?.color);
-    if (!isKingAttacked(newChessboard, kingSquare)) {
+    if (!isKingAttacked(newChessboard, square.piece?.color)) {
       legalMoves.add(move);
     }
   }
