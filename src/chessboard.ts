@@ -89,7 +89,7 @@ export function getNewBoard(
   dst: Position,
 ): Chessboard {
   /* Get a new chessboard where src has moved to dst position. */
-  if (src === undefined || src.piece === undefined) {
+  if (src.piece === undefined) {
     // unreachable
     return [];
   }

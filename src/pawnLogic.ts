@@ -8,12 +8,16 @@ export function isPawnPromotion(src: ISquare, dst: Position): boolean {
 
 export function promotePawn(
   chessboard: Chessboard,
-  pawnPosition: Position,
+  pawnSquare: ISquare,
 ): Chessboard {
   /* Promote pawn into a queen. */
-  const newChessboard = structuredClone(chessboard);
-  const y = pawnPosition.y;
-  const x = pawnPosition.x;
-  newChessboard[y][x].piece.type = PieceType.QUEEN;
+  if (pawnSquare.piece === undefined) {
+    // unreachable
+    return [];
+  }
+  const newChessboard: Chessboard = structuredClone(chessboard);
+  const y = pawnSquare.position.y;
+  const x = pawnSquare.position.x;
+  newChessboard[y][x].piece = { ...pawnSquare.piece, type: PieceType.QUEEN };
   return newChessboard;
 }

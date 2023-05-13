@@ -231,7 +231,7 @@ function attackedRow(
   const y = src.position.y;
   const dx = startX < endX ? 1 : -1;
   for (let x = startX + dx; startX < endX ? x <= endX : x >= endX; x += dx) {
-    const newPosition = { x, y };
+    const newPosition = { x, y } as Position;
     const newChessboard = getNewBoard(chessboard, src, newPosition);
     if (isKingAttacked(newChessboard, src.piece?.color)) {
       return true;

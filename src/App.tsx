@@ -102,7 +102,7 @@ function Square({
     }
 
     const nextMove = (currentMove + 1) % 2;
-    let newChessboard = null;
+    let newChessboard: Chessboard | null = null;
     if (selectedItem) {
       if (isKingAttacked(chessboard, moves[currentMove])) {
         newChessboard = getNewBoard(chessboard, selectedItem, square.position);
@@ -123,7 +123,7 @@ function Square({
             square.position,
           );
           if (isPawnPromotion(selectedItem, square.position)) {
-            newChessboard = promotePawn(newChessboard, square.position);
+            newChessboard = promotePawn(newChessboard, square);
           }
         }
       }

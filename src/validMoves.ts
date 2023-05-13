@@ -15,7 +15,7 @@ export function isValidMoveUtil(
   chessboard: Chessboard,
   src: ISquare,
   dst: Position,
-) {
+): boolean {
   const legalMoves = getLegalMoves(chessboard, src);
   for (const move of legalMoves) {
     if (move.x === dst.x && move.y === dst.y) return true;
