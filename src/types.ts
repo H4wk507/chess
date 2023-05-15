@@ -1,13 +1,13 @@
 export enum Color {
-  WHITE,
-  BLACK,
+  WHITE = "white",
+  BLACK = "black",
 }
 
 export enum GameState {
-  PLAYING,
-  WHITE,
-  BLACK,
-  DRAW,
+  PLAYING = "Playing",
+  WHITE = "White won",
+  BLACK = "Black won",
+  DRAW = "Draw",
 }
 
 export enum PieceType {
@@ -33,6 +33,14 @@ export type Piece = {
 export type ISquare = {
   piece?: Piece;
   position: Position;
+};
+
+// type TakenSquare = Required<ISquare>
+
+export type Move = {
+  piece: Piece;
+  src: Position;
+  dst: Position;
 };
 
 export type Chessboard = ISquare[][];

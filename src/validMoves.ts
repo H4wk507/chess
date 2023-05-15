@@ -8,15 +8,23 @@ import {
   getLegalQueenMoves,
   getLegalRookMoves,
 } from "./legalMoves";
-import { Chessboard, ISquare, PieceType, Position } from "./types";
+import { Chessboard, ISquare, Move, PieceType, Position } from "./types";
 
 export function isValidMoveUtil(
-  getLegalMoves: (chessboard: Chessboard, src: ISquare) => Set<Position>,
+  getLegalMoves: (
+    chessboard: Chessboard,
+    src: ISquare,
+    lastMove?: Move | null,
+  ) => Set<Position>,
   chessboard: Chessboard,
   src: ISquare,
   dst: Position,
+  lastMove?: Move | null,
 ): boolean {
-  const legalMoves = getLegalMoves(chessboard, src);
+  const legalMoves =
+    lastMove !== undefined
+      ? getLegalMoves(chessboard, src, lastMove)
+      : getLegalMoves(chessboard, src);
   for (const move of legalMoves) {
     if (move.x === dst.x && move.y === dst.y) return true;
   }
@@ -39,6 +47,7 @@ export function isValidMove(
   chessboard: Chessboard,
   src: ISquare,
   dst: ISquare,
+  lastMove: Move | null,
 ): boolean {
   if (dst.piece && dst.piece.color === src.piece?.color) {
     return false;
@@ -46,7 +55,15 @@ export function isValidMove(
 
   switch (src.piece?.type) {
     case PieceType.PAWN:
-      if (!isValidMoveUtil(getLegalPawnMoves, chessboard, src, dst.position))
+      if (
+        !isValidMoveUtil(
+          getLegalPawnMoves,
+          chessboard,
+          src,
+          dst.position,
+          lastMove,
+        )
+      )
         return false;
       break;
     case PieceType.KNIGHT:

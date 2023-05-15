@@ -1,6 +1,6 @@
 import { getNewBoard, hasFreeRow } from "./chessboard";
 import { isKingAttacked } from "./kingLogic";
-import { Chessboard, Color, ISquare, PieceType, Position } from "./types";
+import { Chessboard, Color, ISquare, Move, PieceType, Position } from "./types";
 
 function isOutOfBounds(y: number, x: number): boolean {
   return y < 0 || y > 7 || x < 0 || x > 7;
@@ -9,6 +9,7 @@ function isOutOfBounds(y: number, x: number): boolean {
 export function getLegalPawnMoves(
   chessboard: Chessboard,
   pawnSquare: ISquare,
+  lastMove?: Move | null,
 ): Set<Position> {
   const y = pawnSquare.position.y;
   const x = pawnSquare.position.x;
@@ -42,6 +43,18 @@ export function getLegalPawnMoves(
     chessboard[y + direction][x + 1].piece?.color !== pawnSquare.piece?.color
   ) {
     legalMoves.add({ y: y + direction, x: x + 1 });
+  }
+  // en passant
+  if (
+    lastMove?.piece.type === PieceType.PAWN &&
+    Math.abs(lastMove.dst.y - lastMove.src.y) === 2 &&
+    lastMove?.dst.y === pawnSquare.position.y &&
+    Math.abs(lastMove.dst.x - pawnSquare.position.x) === 1
+  ) {
+    legalMoves.add({
+      y: pawnSquare.position.y + direction,
+      x: lastMove.dst.x,
+    });
   }
   return legalMoves;
 }
@@ -243,11 +256,12 @@ function attackedRow(
 export function getLegalMoves(
   chessboard: Chessboard,
   square: ISquare,
+  lastMove?: Move | null,
 ): Set<Position> {
   let moves = new Set<Position>();
   switch (square.piece?.type) {
     case PieceType.PAWN:
-      moves = getLegalPawnMoves(chessboard, square);
+      moves = getLegalPawnMoves(chessboard, square, lastMove);
       break;
     case PieceType.KNIGHT:
       moves = getLegalKnightMoves(chessboard, square);

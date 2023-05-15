@@ -7,6 +7,7 @@ import {
   Position,
   GameState,
   PieceType,
+  Move,
 } from "./types";
 import { getNewBoard, initChessboard, initEmptyChessboard } from "./chessboard";
 import {
@@ -24,7 +25,12 @@ import {
 } from "./kingLogic";
 import { getLegalMoves } from "./legalMoves";
 import { isValidMove } from "./validMoves";
-import { isPawnPromotion, promotePawn } from "./pawnLogic";
+import {
+  isEnPassant,
+  isPawnPromotion,
+  makeEnPassant,
+  promotePawn,
+} from "./pawnLogic";
 
 const initialChessboard = initChessboard();
 
@@ -50,8 +56,6 @@ initialChessboard[3][3] = {
 const moves = [Color.WHITE, Color.BLACK];
 
 /* 
-en Passant: Knowledge of the last move taken. Can be accommodated by retaining a lastMove data structure
-
 Fifty move rule: Draw if 50 moves were made without any capture or pawn move. 
 Requires history of when the last capture or pawn move. Could be done using lastPawnMoveOrCapture counter
 
@@ -72,74 +76,97 @@ function Square({
   legalMoves,
   setLegalMoves,
   setGameState,
+  lastMove,
+  setLastMove,
 }: {
   square: ISquare;
   chessboard: Chessboard;
   setChessboard: (chessboard: Chessboard) => void;
   selectedItem: null | ISquare;
   setSelectedItem: (item: null | ISquare) => void;
-  currentMove: number;
-  setCurrentMove: (move: number) => void;
+  currentMove: Color;
+  setCurrentMove: (move: Color) => void;
   legalMoves: Set<Position>;
   setLegalMoves: (moves: Set<Position>) => void;
   setGameState: (state: GameState) => void;
+  lastMove: Move | null;
+  setLastMove: (move: Move | null) => void;
 }) {
-  const handleClick = () => {
+  const handleClick = (): void => {
     if (selectedItem && squareEquals(selectedItem, square)) {
       setSelectedItem(null);
       setLegalMoves(new Set());
       return;
     }
 
-    if (square.piece && moves[currentMove] === square?.piece?.color) {
+    if (square.piece && currentMove === square?.piece?.color) {
       setSelectedItem(square);
-      setLegalMoves(getLegalMoves(chessboard, square));
+      setLegalMoves(getLegalMoves(chessboard, square, lastMove));
       return;
     }
 
-    if (selectedItem && !isValidMove(chessboard, selectedItem, square)) {
+    if (
+      selectedItem &&
+      !isValidMove(chessboard, selectedItem, square, lastMove)
+    ) {
       return;
     }
 
-    const nextMove = (currentMove + 1) % 2;
+    const nextMove = currentMove === Color.WHITE ? Color.BLACK : Color.WHITE;
     let newChessboard: Chessboard | null = null;
-    if (selectedItem) {
-      if (isKingAttacked(chessboard, moves[currentMove])) {
+    let newLastMove: Move | null = lastMove ? { ...lastMove } : null;
+    if (selectedItem && selectedItem.piece) {
+      if (isKingAttacked(chessboard, currentMove)) {
         newChessboard = getNewBoard(chessboard, selectedItem, square.position);
-        if (!isKingAttacked(newChessboard, moves[currentMove])) {
+        if (!isKingAttacked(newChessboard, currentMove)) {
           newChessboard = getNewBoard(
             newChessboard,
             selectedItem,
             square.position,
           );
+          newLastMove = {
+            piece: { ...selectedItem.piece },
+            src: { ...selectedItem.position },
+            dst: { ...square.position },
+          };
         }
       } else {
         if (isCastle(selectedItem, square.position)) {
           newChessboard = makeCastle(chessboard, selectedItem, square.position);
+        } else if (isEnPassant(selectedItem, square)) {
+          newChessboard = makeEnPassant(
+            chessboard,
+            selectedItem,
+            square.position,
+          );
         } else {
           newChessboard = getNewBoard(
             chessboard,
             selectedItem,
             square.position,
           );
-          if (isPawnPromotion(selectedItem, square.position)) {
-            newChessboard = promotePawn(newChessboard, square);
-          }
+        }
+        newLastMove = {
+          piece: { ...selectedItem.piece },
+          src: { ...selectedItem.position },
+          dst: { ...square.position },
+        };
+        if (isPawnPromotion(selectedItem, square.position)) {
+          newChessboard = promotePawn(newChessboard, square);
         }
       }
-      if (isMated(newChessboard, moves[nextMove])) {
+      if (isMated(newChessboard, nextMove)) {
         setGameState(
-          moves[currentMove] === Color.WHITE
-            ? GameState.WHITE
-            : GameState.BLACK,
+          currentMove === Color.WHITE ? GameState.WHITE : GameState.BLACK,
         );
-      } else if (isDraw(newChessboard, moves[nextMove])) {
+      } else if (isDraw(newChessboard, nextMove)) {
         setGameState(GameState.DRAW);
       }
       setChessboard(newChessboard);
       setCurrentMove(nextMove);
       setSelectedItem(null);
       setLegalMoves(new Set());
+      setLastMove(newLastMove);
     }
   };
 
@@ -168,6 +195,7 @@ function ChessboardComponent({
   const [chessboard, setChessboard] = useState(initialChessboard);
   const [selectedItem, setSelectedItem] = useState<null | ISquare>(null);
   const [legalMoves, setLegalMoves] = useState<Set<Position>>(new Set());
+  const [lastMove, setLastMove] = useState<Move | null>(null);
 
   return (
     <div className="chessboard">
@@ -187,6 +215,8 @@ function ChessboardComponent({
                 legalMoves={legalMoves}
                 setLegalMoves={setLegalMoves}
                 setGameState={setGameState}
+                lastMove={lastMove}
+                setLastMove={setLastMove}
               />
             ))}
           </div>
@@ -197,24 +227,11 @@ function ChessboardComponent({
 }
 
 function Turn({ currentMove }: { currentMove: Color }) {
-  return <p>Turn: {moves[currentMove] === Color.WHITE ? "white" : "black"}</p>;
+  return <p>Turn: {currentMove}</p>;
 }
 
 function GameStateComponent({ gameState }: { gameState: GameState }) {
-  let gameStateString = "";
-  switch (gameState) {
-    case GameState.WHITE:
-      gameStateString = "white won";
-      break;
-    case GameState.BLACK:
-      gameStateString = "black won";
-      break;
-    case GameState.DRAW:
-      gameStateString = "draw";
-      break;
-  }
-
-  return <>{gameStateString && <p>{gameStateString}</p>}</>;
+  return <>{gameState !== "Playing" && <p>{gameState}</p>}</>;
 }
 
 function App() {

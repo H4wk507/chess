@@ -155,6 +155,7 @@ export function makeCastle(
   const newRookPosition = { x: newRookX, y };
 
   let newChessboard = getNewBoard(chessboard, kingSquare, dst);
+  // TODO dont need to make another chessboard?
   newChessboard = getNewBoard(newChessboard, rookSquare, newRookPosition);
   return newChessboard;
 }
