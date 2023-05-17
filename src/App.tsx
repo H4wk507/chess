@@ -114,7 +114,13 @@ function Square({
 
     const nextMove = currentMove === Color.WHITE ? Color.BLACK : Color.WHITE;
     let newChessboard: Chessboard | null = null;
-    let newLastMove: Move | null = lastMove ? { ...lastMove } : null;
+    let newLastMove: Move | null = lastMove
+      ? {
+          piece: { ...lastMove.piece },
+          src: { ...lastMove.src },
+          dst: { ...lastMove.dst },
+        }
+      : null;
     if (selectedItem && selectedItem.piece) {
       if (isKingAttacked(chessboard, currentMove)) {
         newChessboard = getNewBoard(chessboard, selectedItem, square.position);
@@ -125,7 +131,7 @@ function Square({
             square.position,
           );
           newLastMove = {
-            piece: { ...selectedItem.piece },
+            piece: { ...selectedItem.piece, hasMoved: true },
             src: { ...selectedItem.position },
             dst: { ...square.position },
           };
@@ -147,7 +153,7 @@ function Square({
           );
         }
         newLastMove = {
-          piece: { ...selectedItem.piece },
+          piece: { ...selectedItem.piece, hasMoved: true },
           src: { ...selectedItem.position },
           dst: { ...square.position },
         };
