@@ -65,6 +65,7 @@ Requires all previous board states since the last castle, pawn move or capture.
 
 // TODO: host on ipfs
 // TODO: propose draw button, resign button
+// TODO: implement a testing mechanism
 function Square({
   square,
   chessboard,

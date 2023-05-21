@@ -12,14 +12,10 @@ export function promotePawn(
   pawnSquare: ISquare,
 ): Chessboard {
   /* Promote pawn into a queen. */
-  if (pawnSquare.piece === undefined) {
-    // unreachable
-    return [];
-  }
   const newChessboard: Chessboard = structuredClone(chessboard);
   const y = pawnSquare.position.y;
   const x = pawnSquare.position.x;
-  newChessboard[y][x].piece = { ...pawnSquare.piece, type: PieceType.QUEEN };
+  newChessboard[y][x].piece = { ...pawnSquare.piece!, type: PieceType.QUEEN };
   return newChessboard;
 }
 

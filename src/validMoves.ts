@@ -88,5 +88,5 @@ export function isValidMove(
       break;
   }
   const newChessboard = getNewBoard(chessboard, src, dst.position);
-  return !isKingAttacked(newChessboard, src.piece?.color);
+  return !isKingAttacked(newChessboard, src.piece!.color);
 }

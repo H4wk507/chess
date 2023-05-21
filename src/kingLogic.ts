@@ -25,13 +25,9 @@ export function getKingSquare(chessboard: Chessboard, color?: Color): ISquare {
 
 export function isKingAttacked(
   chessboard: Chessboard,
-  kingColor?: Color,
+  kingColor: Color,
 ): boolean {
   /* Check if 'kingColor' color king is under attack. */
-  if (kingColor === undefined) {
-    // unreachable
-    return false;
-  }
   const kingSquare = getKingSquare(chessboard, kingColor);
   return chessboard.flat().some((square) => {
     if (square.piece?.color === kingColor) {
@@ -150,12 +146,15 @@ export function makeCastle(
 ): Chessboard {
   const y = dst.y;
   const newKingX = dst.x;
-  const rookSquare = newKingX === 2 ? chessboard[y][0] : chessboard[y][7];
+  const rookX = newKingX === 2 ? 0 : 7;
   const newRookX = newKingX === 2 ? newKingX + 1 : newKingX - 1;
-  const newRookPosition = { x: newRookX, y };
+  const rookSquare = chessboard[y][rookX];
 
-  let newChessboard = getNewBoard(chessboard, kingSquare, dst);
-  // TODO dont need to make another chessboard?
-  newChessboard = getNewBoard(newChessboard, rookSquare, newRookPosition);
+  const newChessboard = structuredClone(chessboard);
+  newChessboard[y][kingSquare.position.x].piece = undefined;
+  newChessboard[y][newKingX].piece = { ...kingSquare.piece, hasMoved: true };
+
+  newChessboard[y][rookX].piece = undefined;
+  newChessboard[y][newRookX].piece = { ...rookSquare.piece, hasMoved: true };
   return newChessboard;
 }

@@ -167,7 +167,7 @@ export function getLegalKingMoves(
   const legalMoves = new Set<Position>();
   const y = kingSquare.position.y;
   const x = kingSquare.position.x;
-  const color = kingSquare.piece?.color;
+  const color = kingSquare.piece!.color;
   for (const dy of [-1, 0, 1]) {
     for (const dx of [-1, 0, 1]) {
       if (
@@ -246,7 +246,7 @@ function attackedRow(
   for (let x = startX + dx; startX < endX ? x <= endX : x >= endX; x += dx) {
     const newPosition = { x, y } as Position;
     const newChessboard = getNewBoard(chessboard, src, newPosition);
-    if (isKingAttacked(newChessboard, src.piece?.color)) {
+    if (isKingAttacked(newChessboard, src.piece!.color)) {
       return true;
     }
   }
@@ -282,7 +282,7 @@ export function getLegalMoves(
   const legalMoves = new Set<Position>();
   for (const move of moves) {
     const newChessboard = getNewBoard(chessboard, square, move);
-    if (!isKingAttacked(newChessboard, square.piece?.color)) {
+    if (!isKingAttacked(newChessboard, square.piece!.color)) {
       legalMoves.add(move);
     }
   }

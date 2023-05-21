@@ -89,13 +89,9 @@ export function getNewBoard(
   dst: Position,
 ): Chessboard {
   /* Get a new chessboard where src has moved to dst position. */
-  if (src.piece === undefined) {
-    // unreachable
-    return [];
-  }
   const newChessboard: Chessboard = structuredClone(chessboard);
   newChessboard[src.position.y][src.position.x].piece = undefined;
-  newChessboard[dst.y][dst.x].piece = { ...src.piece, hasMoved: true };
+  newChessboard[dst.y][dst.x].piece = { ...src.piece!, hasMoved: true };
   return newChessboard;
 }
 
