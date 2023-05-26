@@ -109,3 +109,7 @@ export function hasFreeRow(
   }
   return true;
 }
+
+export function isMovePawnMoveOrCapture(src: ISquare, dst: ISquare) {
+  return src.piece!.type === PieceType.PAWN || dst.piece;
+}
