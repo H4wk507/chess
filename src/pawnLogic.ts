@@ -1,5 +1,11 @@
 import { getNewBoard } from "./chessboard";
-import { ISquare, Position, Color, PieceType, Chessboard } from "./types";
+import {
+  type ISquare,
+  type Position,
+  Color,
+  PieceType,
+  type Chessboard,
+} from "./types";
 
 export function isPawnPromotion(src: ISquare, dst: Position): boolean {
   /* Check if a move from src to dst is a pawn promotion. */

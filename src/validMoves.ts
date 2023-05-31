@@ -8,7 +8,13 @@ import {
   getLegalQueenMoves,
   getLegalRookMoves,
 } from "./legalMoves";
-import { Chessboard, ISquare, Move, PieceType, Position } from "./types";
+import {
+  type Chessboard,
+  type ISquare,
+  type Move,
+  PieceType,
+  type Position,
+} from "./types";
 
 export function isValidMoveUtil(
   getLegalMoves: (

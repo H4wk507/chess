@@ -1,4 +1,10 @@
-import { Color, ISquare, Piece, PieceType, Position } from "./types";
+import {
+  Color,
+  type ISquare,
+  type Piece,
+  PieceType,
+  type Position,
+} from "./types";
 
 export function pieceToSvg(piece?: Piece): string | null {
   if (piece === undefined) return null;

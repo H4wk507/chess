@@ -8,7 +8,13 @@ import {
   getLegalKingMoves,
   getLegalMoves,
 } from "./legalMoves";
-import { Chessboard, Color, ISquare, PieceType, Position } from "./types";
+import {
+  type Chessboard,
+  Color,
+  type ISquare,
+  PieceType,
+  type Position,
+} from "./types";
 import { isValidKingMoveToNotAttacked, isValidMoveUtil } from "./validMoves";
 
 export function getKingSquare(chessboard: Chessboard, color?: Color): ISquare {

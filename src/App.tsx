@@ -1,9 +1,18 @@
 import { useState } from "react";
 import "./App.css";
-import { Chessboard, Color, ISquare, Position, GameState, Move } from "./types";
+import {
+  type Chessboard,
+  Color,
+  type ISquare,
+  type Position,
+  GameState,
+  PieceType,
+  type Move,
+} from "./types";
 import {
   getNewBoard,
   initChessboard,
+  initEmptyChessboard,
   isMovePawnMoveOrCapture,
 } from "./chessboard";
 import {
@@ -99,13 +108,7 @@ function Square({
 
     const nextMove = currentMove === Color.WHITE ? Color.BLACK : Color.WHITE;
     let newChessboard: Chessboard | null = null;
-    let newLastMove: Move | null = lastMove
-      ? {
-          piece: { ...lastMove.piece },
-          src: { ...lastMove.src },
-          dst: { ...lastMove.dst },
-        }
-      : null;
+    let newLastMove: Move | null = lastMove ? structuredClone(lastMove) : null;
     if (selectedItem && selectedItem.piece) {
       if (isKingAttacked(chessboard, currentMove)) {
         newChessboard = getNewBoard(chessboard, selectedItem, square.position);

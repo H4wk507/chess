@@ -1,16 +1,16 @@
-export enum Color {
+export const enum Color {
   WHITE = "white",
   BLACK = "black",
 }
 
-export enum GameState {
+export const enum GameState {
   PLAYING = "Playing",
   WHITE = "White won",
   BLACK = "Black won",
   DRAW = "Draw",
 }
 
-export enum PieceType {
+export const enum PieceType {
   PAWN,
   KNIGHT,
   BISHOP,

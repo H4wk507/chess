@@ -1,6 +1,13 @@
 import { getNewBoard, hasFreeRow } from "./chessboard";
 import { isKingAttacked } from "./kingLogic";
-import { Chessboard, Color, ISquare, Move, PieceType, Position } from "./types";
+import {
+  type Chessboard,
+  Color,
+  type ISquare,
+  type Move,
+  PieceType,
+  type Position,
+} from "./types";
 
 function isOutOfBounds(y: number, x: number): boolean {
   return y < 0 || y > 7 || x < 0 || x > 7;
